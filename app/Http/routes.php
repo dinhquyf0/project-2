@@ -33,14 +33,14 @@ Route::get('/', function () {
 
 Route::post('/connect' , 'UserController@connect');
 Route::get('/redirect' , 'UserController@redirectLogin');
-Route::get('/users', 'UserController@index')
-	->middleware(['jwt.auth', 'jwtToken']);
+Route::get('/users', 'UserController@index');
+	// ->middleware(['jwt.auth', 'jwtToken']);
 
-Route::get('/user', 'UserController@show')
-	->middleware(['jwt.auth']);
+Route::get('/user', 'UserController@show');
+	// ->middleware(['jwt.auth']);
 	
-Route::get('/user/{id}', 'UserController@show_user')
-	->middleware(['jwt.auth' , 'jwtToken']);
+Route::get('/user/{id}', 'UserController@show_user');
+	// ->middleware(['jwt.auth' , 'jwtToken']);
 
 Route::post('/signUp', 'UserController@signUp');
 
