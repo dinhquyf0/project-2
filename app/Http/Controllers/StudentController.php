@@ -42,11 +42,16 @@ class StudentController extends Controller
     		$temp['toyear'] = $value->toyear;
     		$temp['major'] = $value->major;
     		$temp['classid'] = $value->classid;
-    		$class_name = DB::select('select name from classes where id = ?', [$value->classid]);
-    		$temp['classname'] = $class_name[0]->name;
+    		$class_name = DB::select('select name from grades where id = ?', [$value->classid]);
+ 			if (count($class_name) == 0) {
+ 				$temp['classname'] = 'N/A';
+ 			} else {
+ 				$temp['classname'] = $class_name[0]->name;
+ 			}
+ 	   		
     		$return_array[] = $temp;
     	}
-    	return response()->json($teachers);
+    	return response()->json($return_array);
     }
 
     public function store(Request $request)
