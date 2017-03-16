@@ -285,12 +285,12 @@ class UserController extends Controller
      */	
     public function show_user($id)
     {
-    	$user = JWTAuth::parseToken()->authenticate();
+    	// $user = JWTAuth::parseToken()->authenticate();
     	$returnArray = array();
-        if($user['groupid'] != 1) {
-			$returnArray = array('result' => false);
-        	return response()->json($returnArray);
-        }
+   //      if($user['groupid'] != 1) {
+			// $returnArray = array('result' => false);
+   //      	return response()->json($returnArray);
+   //      }
 
         $user =	DB::select('select users.id, users.username, users.name, users.email
 			from users, groups 
