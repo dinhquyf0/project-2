@@ -22,12 +22,12 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class StudentController extends Controller
 {
-	// public function __construct()
-	// {
-	// 	$user = JWTAuth::parseToken()->authenticate();
-	// 	$this->userid = $user['id'];
-	// 	$this->groupid = $user['groupid'];
-	// }
+	public function __construct()
+	{
+		$user = JWTAuth::parseToken()->authenticate();
+		$this->userid = $user['id'];
+		$this->groupid = $user['groupid'];
+	}
     public function index()
     {
     	$return_array = array();
