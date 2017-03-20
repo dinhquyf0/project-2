@@ -101,27 +101,27 @@ class UserController extends Controller
 			};
 		}
 
-		//get all group id from database
-		$groupIds = DB::select('select id from groups');
+		// //get all group id from database
+		// $groupIds = DB::select('select id from groups');
 		
-		//initialize a blank array for storing group id
-		$groupIdArray =	array();
+		// //initialize a blank array for storing group id
+		// $groupIdArray =	array();
 		
-		//fetch the object into int array
-		foreach($groupIds as $groupId){
-			$groupIdArray[] = $groupId->id;
-		}
+		// //fetch the object into int array
+		// foreach($groupIds as $groupId){
+		// 	$groupIdArray[] = $groupId->id;
+		// }
 
-		//validate the input variable from the post request
+		// //validate the input variable from the post request
 		
-		//for temporary, save the groupid input value
-		$groupidTemp = $request->groupid;
+		// //for temporary, save the groupid input value
+		// $groupidTemp = $request->groupid;
 		
-		//if that group id is not existed in the database, terminate the request
-		if(!in_array((int)$groupidTemp, $groupIdArray)){
-			$returnArray = array('result' => false);
-			return response()->json($returnArray, 400);			
-		}
+		// //if that group id is not existed in the database, terminate the request
+		// if(!in_array((int)$groupidTemp, $groupIdArray)){
+		// 	$returnArray = array('result' => false);
+		// 	return response()->json($returnArray, 400);			
+		// }
 		//check if the username and email is used or not
 		$check = DB::select('select * from users where users.username = ? or users.email = ?', 
 			[$request->username , $request->email]);
