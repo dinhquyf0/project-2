@@ -208,4 +208,8 @@ class GroupController extends Controller
 		$returnArray = array("result" => true);
 		return response()->json($returnArray);	
     }
+
+    public function createController(Request $request){
+    	DB::insert('INSERT INTO controllers (name, description) value(?, ?) ', [$request->name, $request->description]);
+    }
 }

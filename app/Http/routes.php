@@ -74,6 +74,36 @@ Route::post('/change_status_user/{userid}', 'UserController@changeStatusUser')
 
 Route::post('/reset_password_default/{userid}', 'UserController@resetPasswordDefault')
     ->middleware(['jwt.auth']);
+//GroupController route
+Route::get('/groups', 'GroupController@index');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::get('/group/{id}', 'GroupController@show')
+    ->where('id', '[0-9]+');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::delete('/delete_group/{id}', 'GroupController@destroy')
+    ->where('id', '[0-9]+');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::post('/create_group', 'GroupController@store');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::post('/update_group/{id}', 'GroupController@update')
+    ->where('id', '[0-9]+');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+//PermissionController route
+Route::get('/permissions', 'PermissionController@index');
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::post('/change_permissions/{groupid}/{controllerid}', 'PermissionController@store')
+    ->where(array('groupid' => '[0-9]+', 'controllerid'	=> '[0-9]+'));
+    // ->middleware(['jwt.auth', 'jwtToken']);
+
+Route::get('/user_permissions', 'PermissionController@get_private_permissions');
+
+Route::post('/create_controller', 'GroupController@createController');
+    // ->middleware(['jwt.auth']);
 
 //Route for student
 Route::post('/create_student', 'StudentController@store');
