@@ -58,15 +58,15 @@ class GroupController extends Controller
 			return response()->json($returnArray);			
 		}
 		//add new group to redis
-		$redis = new Redis();
-   		$redis->connect('localhost', 6379);
+		// $redis = new Redis();
+  //  		$redis->connect('localhost', 6379);
 
-		$groupid = DB::select("select * from groups where name = ? ", [$request->name]);
-		$data = array();
-		$data['groupId'] = $groupid[0]->id;
-		$data['groupName'] =  base64_encode($groupid[0]->name);
-		$data['controllerId'] = array();
-		$redis->hSet('permission', $data['groupId'] , json_encode($data));
+		// $groupid = DB::select("select * from groups where name = ? ", [$request->name]);
+		// $data = array();
+		// $data['groupId'] = $groupid[0]->id;
+		// $data['groupName'] =  base64_encode($groupid[0]->name);
+		// $data['controllerId'] = array();
+		// $redis->hSet('permission', $data['groupId'] , json_encode($data));
 
 
 		//return the true array so client could know the program is done.
