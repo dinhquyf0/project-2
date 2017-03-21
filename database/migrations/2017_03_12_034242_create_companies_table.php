@@ -22,6 +22,8 @@ class CreateCompaniesTable extends Migration
             $table->string('email');
             $table->timestamps();
         });
+
+        DB::update("ALTER TABLE companies AUTO_INCREMENT = 1;");
     }
 
     /**

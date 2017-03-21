@@ -20,6 +20,8 @@ class CreateDepartmentsTable extends Migration
             $table->integer('phone');
             $table->timestamps();
         });
+
+        DB::update("ALTER TABLE departments AUTO_INCREMENT = 1;");
     }
 
     /**

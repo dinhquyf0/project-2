@@ -18,6 +18,8 @@ class CreateGroupsTable extends Migration
             $table->string('description');
             $table->timestamps();
         });
+
+        DB::update("ALTER TABLE groups AUTO_INCREMENT = 1;");
     }
 
     /**
