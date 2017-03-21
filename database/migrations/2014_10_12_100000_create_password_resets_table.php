@@ -17,7 +17,6 @@ class CreatePasswordResetsTable extends Migration
             $table->string('token')->index();
             $table->timestamp('created_at');
         });
-        DB::update("ALTER TABLE password_resets AUTO_INCREMENT = 1;");
     }
 
     /**

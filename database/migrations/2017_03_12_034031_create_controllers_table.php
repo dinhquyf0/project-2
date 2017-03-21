@@ -19,7 +19,6 @@ class CreateControllersTable extends Migration
             $table->timestamps();
         });
 
-        DB::update("ALTER TABLE controllers AUTO_INCREMENT = 1;");
     }
 
     /**

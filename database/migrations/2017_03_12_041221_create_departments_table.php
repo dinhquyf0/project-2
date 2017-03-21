@@ -21,7 +21,6 @@ class CreateDepartmentsTable extends Migration
             $table->timestamps();
         });
 
-        DB::update("ALTER TABLE departments AUTO_INCREMENT = 1;");
     }
 
     /**
