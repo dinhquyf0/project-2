@@ -22,33 +22,33 @@ class EmployeeController extends Controller
 {
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
-		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->user_id = $user['id'];
+		$this->group_id = $user['groupid'];
 	}
 
-    public function index()
+    public function indexEmployees()
     {
     	$employees = DB::table('employees')->get();
     	return $employees;
     }
 
-    public function store(Request $request)
+    public function storeEmployees(Request $request)
     {
     	$validator = Validator::make($request->all(), 
 			[
-				'emplyeesid' => 'required|string|max:255',
+				'employee_id' => 'required|string|max:255',
 				'dept' => 'required|string|max:255',
 				'position' => 'required|string|max:255',
-				'companyid' => 'required|numeric|max:255',
+				'company_id' => 'required|max:255',
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('emplyeesid')) {
+			if($errors->has('emplyee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyeesid'
+					'message' => 'emplyee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -67,9 +67,9 @@ class EmployeeController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('companyid')) {
+			if($errors->has('company_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'companyid'
+					'message' => 'company_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -77,11 +77,11 @@ class EmployeeController extends Controller
 
 		$employee = new Employee;
 
-		$employee->id = $this->userid;
-		$employee->employeeid = $request->employeeid;
+		$employee->id = $this->user_id;
+		$employee->employee_id = $request->employee_id;
 		$employee->dept = $request->dept;
 		$employee->position = $request->position;
-		$employee->companiesid = $request->companyid;
+		$employee->company_id = $request->company_id;
 
 		$employee->save();
 
@@ -89,7 +89,7 @@ class EmployeeController extends Controller
 
     }
 
-    public function show($id)
+    public function showEmployees($id)
     {
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
@@ -100,14 +100,14 @@ class EmployeeController extends Controller
 
         $employee = DB::table('employees')->where('id', $id)
         	->join('users', 'users.id = employees.id')
-        	->join('companies', 'companies.id = employees.companyid')
-        	->select('users.name', 'companies.name', 'employees.employeeid', 'employees.dept', 'employees.position', 'employees.companiesid');
+        	->join('companies', 'companies.id = employees.company_id')
+        	->select('users.name', 'companies.name', 'employees.employee_id', 'employees.dept', 'employees.position', 'employees.company_id');
         	->first();
         
         return response()->json($employee);
     }
 
-    public function update(Request $request, $id)
+    public function updateEmployees(Request $request, $id)
     {
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
@@ -118,19 +118,19 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), 
 			[
-				'emplyeesid' => 'required|string|max:255',
+				'emplyee_id' => 'required|string|max:255',
 				'dept' => 'required|string|max:255',
 				'position' => 'required|string|max:255',
-				'companyid' => 'required|numeric|max:255',
+				'company_id' => 'required|max:255',
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('emplyeesid')) {
+			if($errors->has('emplyee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyeesid'
+					'message' => 'emplyee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -149,9 +149,9 @@ class EmployeeController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('companyid')) {
+			if($errors->has('company_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'companyid'
+					'message' => 'company_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -163,18 +163,18 @@ class EmployeeController extends Controller
 			return response()->json(['result' => false, 'reason' => 'employee not found!!']);
 		}
 
-		$employee->id = $this->userid;
-		$employee->employeeid = $request->employeeid;
+		$employee->id = $this->user_id;
+		$employee->employee_id = $request->employee_id;
 		$employee->dept = $request->dept;
 		$employee->position = $request->position;
-		$employee->companiesid = $request->companyid;
+		$employee->company_id = $request->company_id;
 
 		$employee->save();
 
 		return response()->json(['result' => true]);
     }
 
-    public function destroy($id)
+    public function destroyEmployees($id)
     {
 	    if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
@@ -192,6 +192,232 @@ class EmployeeController extends Controller
         $employee->delete();
 
         // DB::table('assign_interns')->where('topic_id', $id)->delete();
+
+        return response()->json(['result' => true]);
+    }
+
+    public function indexCompanies()
+    {
+    	$companies = DB::table('companies')->get();
+
+    	return response()->json($companies);
+    }
+
+    public function storeCompany(Request $request)
+    {
+    	$validator = Validator::make($request->all(), 
+			[
+				'name' => 'required|string|max:255',
+				'description' => 'required|max:255',
+				'foundedyear' => 'required|max:4',
+				'address' => 'required|max:255',
+				'phone' => 'required|max:15',
+				'email' => 'required|email|max:50'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			$errors = $validator->errors();
+			if($errors->has('name')) {
+				$returnArray = array('result' => false, 
+					'message' => 'name!'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('description')) {
+				$returnArray = array('result' => false, 
+					'message' => 'description'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('foundedyear')) {
+				$returnArray = array('result' => false, 
+					'message' => 'foundedyear'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('address')) {
+				$returnArray = array('result' => false, 
+					'message' => 'address'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('phone')) {
+				$returnArray = array('result' => false, 
+					'message' => 'phone'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('email')) {
+				$returnArray = array('result' => false, 
+					'message' => 'email'
+				);
+				return response()->json($returnArray);
+			};
+		}
+
+		$check_exist = DB::table('companies')->where('name', $request->name)->get();
+
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'company exist!!']);
+		}	
+		
+		$company = new Company;
+
+		$company->name = $request->name;
+		$company->description = $request->description;
+		$company->foundedyear = $request->foundedyear;
+		$company->address = $request->address;
+		$company->phone = $request->phone;
+		$company->email = $request->email;
+
+		$check_save = $company->save();
+
+		if (is_null($check_save)) {
+			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
+		}
+
+		return response()->json(['result' => true]);
+    }
+
+    public function showCompany($id)
+    {
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $company = DB::table('companies')->where('id', $id)->first();
+        if (is_null($company)) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+    	
+    	return response()->json($company);
+    }
+
+    public function updateCompany(Request $request, $id)
+    {
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $validator = Validator::make($request->all(), 
+			[
+				'name' => 'required|string|max:255',
+				'description' => 'required|max:255',
+				'foundedyear' => 'required|max:4',
+				'address' => 'required|max:255',
+				'phone' => 'required|max:15',
+				'email' => 'required|email|max:50'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			$errors = $validator->errors();
+			if($errors->has('name')) {
+				$returnArray = array('result' => false, 
+					'message' => 'name!'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('description')) {
+				$returnArray = array('result' => false, 
+					'message' => 'description'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('foundedyear')) {
+				$returnArray = array('result' => false, 
+					'message' => 'foundedyear'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('address')) {
+				$returnArray = array('result' => false, 
+					'message' => 'address'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('phone')) {
+				$returnArray = array('result' => false, 
+					'message' => 'phone'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('email')) {
+				$returnArray = array('result' => false, 
+					'message' => 'email'
+				);
+				return response()->json($returnArray);
+			};
+		}
+
+		$check_exist = DB::table('companies')->where('name', $request->name)->get();
+
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'company exist!!']);
+		}	
+		
+
+		$company = Company::find($id);
+
+        if (count($company) == 0) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+
+		$company->name = $request->name;
+		$company->description = $request->description;
+		$company->foundedyear = $request->foundedyear;
+		$company->address = $request->address;
+		$company->phone = $request->phone;
+		$company->email = $request->email;
+
+		$check_save = $company->save();
+
+		if (is_null($check_save)) {
+			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
+		}
+
+		return response()->json(['result' => true]);
+
+    }
+
+    public function destroyCompany($id)
+    {
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $company = Company::find($id);
+
+        if (is_null($company)) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+
+        $company->delete();
 
         return response()->json(['result' => true]);
     }

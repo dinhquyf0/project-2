@@ -244,6 +244,7 @@ class TeacherController extends Controller
 			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
 		}
 
+		return response()->json(['result' => true]);
     }
 
     public function destroy($id)

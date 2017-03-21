@@ -27,8 +27,8 @@ class SchoolController extends Controller
 	public function __construct()
 	{
 		$user = JWTAuth::parseToken()->authenticate();
-		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->user_id = $user['id'];
+		$this->group_id = $user['group_id'];
 	}
 
     public function indexClass()
@@ -39,9 +39,9 @@ class SchoolController extends Controller
     		$temp['id'] = $value->id;
     		$temp['name'] = $value->name;
     		$temp['no_students'] = $value->no_students;
-    		$temp['teachersid'] = $value->teachersid;
+    		$temp['teacher_id'] = $value->teachersid;
 
-    		$teacher_name = DB::select('select name from teachers where id = ?', [$value->teachersid]);
+    		$teacher_name = DB::select('select name from teachers where id = ?', [$value->teacher_id]);
     		$temp['teacher_name'] = $teacher_name[0]->name;
     		$return_array[] = $temp;
     	}
@@ -54,7 +54,7 @@ class SchoolController extends Controller
 			[
 				'name' => 'required|string|max:255',
 				'no_students' => 'required|max:255',
-				'teachersid' => 'required|max:255',
+				'teacher_id' => 'required|max:255',
 			]
 		);
 		
@@ -75,16 +75,16 @@ class SchoolController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('teachersid')) {
+			if($errors->has('teacher_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'teachersid'
+					'message' => 'teacher_id'
 				);
 				return response()->json($returnArray);
 			};
 
 		}
 
-		$check_teacher = Teacher::find($request->teachersid);
+		$check_teacher = Teacher::find($request->teacher_id);
 
 		if (count($check_teacher) == 0) {
 			return response()->json(['result' => false, 'reason' => 'teacher not exist!!']);
@@ -100,7 +100,7 @@ class SchoolController extends Controller
 
 		$grade->name = $request->name;
 		$grade->no_students = $request->no_students;
-		$grade->teachersid = $request->teachersid;
+		$grade->teacher_id = $request->teacher_id;
 
 		$check_save = $grade->save();
 
@@ -127,7 +127,7 @@ class SchoolController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	$teacher = DB::select('select name from teachers where id = ?', [$check->teachersid]);
+    	$teacher = DB::select('select name from teachers where id = ?', [$check->teacher_id]);
 
     	$return_array = array();
 
@@ -155,7 +155,7 @@ class SchoolController extends Controller
 			[
 				'name' => 'required|string|max:255',
 				'no_students' => 'required|max:255',
-				'teachersid' => 'required|max:255',
+				'teacher_id' => 'required|max:255',
 			]
 		);
 		
@@ -176,9 +176,9 @@ class SchoolController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('teachersid')) {
+			if($errors->has('teacher_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'teachersid'
+					'message' => 'teacher_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -198,7 +198,7 @@ class SchoolController extends Controller
 
         $grade->name = $request->name;
 		$grade->no_students = $request->no_students;
-		$grade->teachersid = $request->teachersid;
+		$grade->teacher_id = $request->teacher_id;
 
 		$check_save = $grade->save();
 
@@ -225,7 +225,7 @@ class SchoolController extends Controller
         }
 
         $grade->delete();
-        DB::delete('delete from students where classid = ?', [$id]);
+        DB::delete('delete from students where class_id = ?', [$id]);
 
         return response()->json(['result' => true]);
     }
@@ -320,7 +320,7 @@ class SchoolController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	$teachers = DB::select('select name from teachers where departmentsid = ?', [$id]);
+    	$teachers = DB::select('select name from teachers where department_id = ?', [$id]);
 
     	$return_array = array();
 
@@ -430,7 +430,7 @@ class SchoolController extends Controller
         }
 
         $department->delete();
-        DB::delete('delete from teachers where departmentsid = ?', [$id]);
+        DB::delete('delete from teachers where department_id = ?', [$id]);
 
         return response()->json(['result' => true]);
     }

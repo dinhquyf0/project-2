@@ -33,8 +33,8 @@ class PermissionController extends Controller
         	groups.id as groupId,
         	controllers.id as controllerId
         	from groups
-        	left join permissions on permissions.groupid = groups.id
-        	left join controllers on controllers.id = permissions.controllerid"
+        	left join permissions on permissions.group_id = groups.id
+        	left join controllers on controllers.id = permissions.controller_id"
         	);
 		
 		//initialize the blank array to store permissions
@@ -118,14 +118,14 @@ class PermissionController extends Controller
 		}
 
 		//check if the permission is existed or not
-		$permissionsFromDB = DB::select("select id from permissions where groupid = ? and controllerid = ?", [(int)$groupid, (int)$controllerid]);
+		$permissionsFromDB = DB::select("select id from permissions where group_id = ? and controller_id = ?", [(int)$groupid, (int)$controllerid]);
 
 		//if it's existed, delete it
 		if(count($permissionsFromDB) >= 1){
 			//delete the requested permission with groupid and controllerid
 			$check = DB::table('permissions')
-			->where('groupid',(int)$groupid)
-			->where('controllerid',(int)$controllerid)
+			->where('group_id',(int)$groupid)
+			->where('controller_id',(int)$controllerid)
 			->delete();
 
 			//check if delete statement was done successfully or not
@@ -135,23 +135,23 @@ class PermissionController extends Controller
 			}
 
             //change permission into REDIS
-            $redis = new Redis();
-            $redis->connect('localhost');
-            $redis->hDel('permission', $groupid);
+            // $redis = new Redis();
+            // $redis->connect('localhost');
+            // $redis->hDel('permission', $groupid);
             $insertdata = array();
             $permissions = DB::select("select groups.name as groupName, groups.id as groupid, controllers.id as controllerid
 			from controllers, groups, permissions
-			where groups.id = permissions.groupid 
-			and permissions.controllerid = controllers.id 
+			where groups.id = permissions.group_id 
+			and permissions.controller_id = controllers.id 
 			and groups.id = ?" , [$groupid]
             );
 
             foreach($permissions as $permission){
-                $insertdata['groupId'] = (int)$permission->groupid;
+                $insertdata['groupId'] = (int)$permission->group_id;
                 $insertdata['groupName'] = base64_encode($permission->groupName);
-                $insertdata['controllerId'][] = $permission->controllerid;
+                $insertdata['controllerId'][] = $permission->controller_id;
             }
-            $redis->hSet('permission', $permission->groupid, json_encode($insertdata));
+            // $redis->hSet('permission', $permission->groupid, json_encode($insertdata));
 
 			$returnArray = array("result" => true);
 			return response()->json($returnArray);
@@ -159,8 +159,8 @@ class PermissionController extends Controller
 		
 		//else add it to database
 		$permission	= new Permission;
-		$permission->groupid = (int)$groupid;
-		$permission->controllerid =	(int)$controllerid;
+		$permission->group_id = (int)$groupid;
+		$permission->controller_id =	(int)$controllerid;
 		$check = $permission->save();
 		//check if permission is not save or can't
 		if(!$check){
@@ -168,15 +168,15 @@ class PermissionController extends Controller
 			return response()->json($returnArray);			
 		}
 
-		//change permission into REDIS
-		$redis = new Redis();
-		$redis->connect('localhost');
-		$redis->hDel('permission', $permission->groupid);
+		// //change permission into REDIS
+		// $redis = new Redis();
+		// $redis->connect('localhost');
+		// $redis->hDel('permission', $permission->groupid);
 		$insertdata = array();
 		$permissions = DB::select("select groups.name as groupName, groups.id as groupid, controllers.id as controllerid
 			from controllers, groups, permissions
-			where groups.id = permissions.groupid 
-			and permissions.controllerid = controllers.id 
+			where groups.id = permissions.group_id 
+			and permissions.controller_id = controllers.id 
 			and groups.id = ?" , [$groupid]
 			);
 
@@ -185,7 +185,7 @@ class PermissionController extends Controller
 			$insertdata['groupName'] = base64_encode($permission->groupName);
 			$insertdata['controllerId'][] = $permission->controllerid;
 		}
-		$redis->hSet('permission', $permission->groupid, json_encode($insertdata));
+		// $redis->hSet('permission', $permission->groupid, json_encode($insertdata));
 		
 		$returnArray = array("result" => true);
 		return response()->json($returnArray);
@@ -203,28 +203,28 @@ class PermissionController extends Controller
 		if (!$user) {
 			return response()->json(['result' => false, 'message' => 'no data']);
 		}
-		$redis = new Redis();
-		$check = $redis->connect('localhost');
+		// $redis = new Redis();
+		// $check = $redis->connect('localhost');
 
-		if (!$check) {
-			$this->getPermissionSQL($user->groupid);
-		}
-        $get = $redis->hMGet('permission', [$user->groupid]);
-		if($get[$user->groupid]) {
-			$result = array(json_decode($get[$user->groupid]));
-			$temps = (array)$result[0]->controllerId;
-			$result[0]->controllerId = array();
-			foreach ($temps as $value) {
-                $result[0]->controllerId[] = (String) $value;
-            }
+		// if (!$check) {
+		// 	$this->getPermissionSQL($user->groupid);
+		// }
+        // $get = $redis->hMGet('permission', [$user->groupid]);
+		// if($get[$user->groupid]) {
+		// 	$result = array(json_decode($get[$user->groupid]));
+		// 	$temps = (array)$result[0]->controllerId;
+		// 	$result[0]->controllerId = array();
+		// 	foreach ($temps as $value) {
+  //               $result[0]->controllerId[] = (String) $value;
+  //           }
 
-			$result[0]->groupName = base64_decode($result[0]->groupName);
-	    	return response()->json(array_values($result));
-    	}else{
+		// 	$result[0]->groupName = base64_decode($result[0]->groupName);
+	 //    	return response()->json(array_values($result));
+  //   	}else{
     		$permissions = DB::select("select groups.name as groupName, groups.id as groupId, controllers.id as controllerId 
     			from controllers, groups, permissions 
-    			where groups.id = permissions.groupid 
-    			and permissions.controllerid = controllers.id 
+    			where groups.id = permissions.group_id 
+    			and permissions.controller_id = controllers.id 
     			and groups.id = ?", [$user->groupid]
     			);
 			$returnArray = array();
@@ -237,7 +237,7 @@ class PermissionController extends Controller
 				$redis->hSet('permission', $permission->groupId,json_encode($data));
 			}
 			return response()->json(array_values($returnArray));
-		}	
+		// }	
 	}
 
 	public function getPermissionSQL($groupid)

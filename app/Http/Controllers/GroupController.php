@@ -141,17 +141,17 @@ class GroupController extends Controller
 			return response()->json($returnArray);			
 		}
 
-		//update data to redis
-		$redis = new Redis();
-   		$redis->connect('localhost', 6379);
-   		$redis->hDel('permission',$id);
-		$groupid = DB::select("select * from groups where id = ? ", [$id]);
-		$data = array();
-		$data['groupId'] = $groupid[0]->id;
-		$data['groupName'] = base64_encode($groupid[0]->name);
-		$data['controllerId'] = array();
+		// //update data to redis
+		// $redis = new Redis();
+  //  		$redis->connect('localhost', 6379);
+  //  		$redis->hDel('permission',$id);
+		// $groupid = DB::select("select * from groups where id = ? ", [$id]);
+		// $data = array();
+		// $data['groupId'] = $groupid[0]->id;
+		// $data['groupName'] = base64_encode($groupid[0]->name);
+		// $data['controllerId'] = array();
 
-		$list_permission = DB::select("select controllerid from permissions where groupid = ? ", [$id]);
+		$list_permission = DB::select("select controller_id from permissions where group_id = ? ", [$id]);
 		if (!$list_permission) {
 			return response()->json(['result' => false]);
 		}
@@ -201,9 +201,9 @@ class GroupController extends Controller
 			return response()->json($returnArray, 400);
 		}
 		
-		$redis = new Redis();
-   		$redis->connect('localhost', 6379);
-   		$redis->hDel('permission',$id);
+		// $redis = new Redis();
+  //  		$redis->connect('localhost', 6379);
+  //  		$redis->hDel('permission',$id);
 
 		$returnArray = array("result" => true);
 		return response()->json($returnArray);	

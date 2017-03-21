@@ -20,8 +20,8 @@ class TopicController extends Controller
 {
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
-		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->user_id = $user['id'];
+		$this->group_id = $user['group_id'];
 	}
 
     public function index()
@@ -37,11 +37,11 @@ class TopicController extends Controller
 				'title' => 'required|string|max:255',
 				'categories' => 'required|string|max:255',
 				'description' => 'required|string|max:255',
-				'no_interns' => 'required|numeric|max:255',
+				'no_interns' => 'required|max:255',
                 'timelimit' => 'required|smallInteger|max:3',
 				'start' => 'required|string|max:60',
 				'stop' => 'required|string|max:60',
-				'employeeid' => 'required|numeric|max:1000'
+				'employee_id' => 'required|max:1000'
 			]
 		);
 		
@@ -97,9 +97,9 @@ class TopicController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('employeeid')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'employeeid'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -114,7 +114,7 @@ class TopicController extends Controller
 		$topics->timelimit = $request->timelimit;
 		$topics->status = $request->status;
 		$topics->stop = $request->stop;
-		$topics->emplyeesid = $request->employeeid;
+		$topics->emplyee_id = $request->employee_id;
 
 		$topics->save();
 
@@ -132,8 +132,8 @@ class TopicController extends Controller
         }
 
         $topic = DB::table('topics')->where('id', $id)
-        	->join('users', 'users.id = topics.emplyeesid')
-        	->select('users.name', 'topics.title', 'topics.categories', 'topics.description', 'topics.no_interns', 'topics.timelimit', 'topics.start', 'topics.status', 'topics.stop', 'topics.emplyeesid');
+        	->join('users', 'users.id = topics.emplyee_id')
+        	->select('users.name', 'topics.title', 'topics.categories', 'topics.description', 'topics.no_interns', 'topics.timelimit', 'topics.start', 'topics.status', 'topics.stop', 'topics.emplyee_id');
         	->first();
         
         return response()->json($topics);
@@ -153,11 +153,11 @@ class TopicController extends Controller
 				'title' => 'required|string|max:255',
 				'categories' => 'required|string|max:255',
 				'description' => 'required|string|max:255',
-				'no_interns' => 'required|numeric|max:255',
+				'no_interns' => 'required|max:255',
                 'timelimit' => 'required|smallInteger|max:3',
 				'start' => 'required|string|max:60',
 				'stop' => 'required|string|max:60',
-				'employeeid' => 'required|numeric|max:1000'
+				'employee_id' => 'required|max:1000'
 			]
 		);
 		
@@ -213,9 +213,9 @@ class TopicController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('employeeid')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'employeeid'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -230,7 +230,7 @@ class TopicController extends Controller
 		$topics->timelimit = $request->timelimit;
 		$topics->status = $request->status;
 		$topics->stop = $request->stop;
-		$topics->emplyeesid = $request->employeeid;
+		$topics->emplyee_id = $request->employee_id;
 
 		$topics->save();
 

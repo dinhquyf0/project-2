@@ -26,16 +26,16 @@ class AssigneeInternController extends Controller
 {
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
-		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->user_id = $user['id'];
+		$this->group_id = $user['groupid'];
 	}
 
     public function index()
     {
     	$assigns = DB::table('assign_interns')
-    	->join('users', 'users.id = assign_interns.studentsid')
-    	->join('users', 'users.id = assign_interns.teachersid')
-		->join('users', 'users.id = assign_interns.emplyeesid')
+    	->join('users', 'users.id = assign_interns.student_id')
+    	->join('users', 'users.id = assign_interns.teacher_id')
+		->join('users', 'users.id = assign_interns.employee_id')
 		->join('topics', 'topics.id = assign_interns.topic_id')
 		->select('users.name as student_name', 'users.name as teacher_name', 'users.name as employee_name',
 			'topics.title as tilte', 'assign_interns.period as period')
@@ -48,10 +48,10 @@ class AssigneeInternController extends Controller
     	$validator = Validator::make($request->all(), 
 			[
 				'period' => 'required|string|max:255',
-				'studentsid' => 'required|string|max:255',
-				'teachersid' => 'required|string|max:255',
-				'emplyeesid' => 'required|numeric|max:255',
-                'topic_id' => 'required|numeric|max:3',
+				'student_id' => 'required|string|max:255',
+				'teacher_id' => 'required|string|max:255',
+				'employee_id' => 'required|max:255',
+                'topic_id' => 'required|max:3',
 			]
 		);
 		
@@ -65,23 +65,23 @@ class AssigneeInternController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('studentsid')) {
+			if($errors->has('student_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'studentsid'
+					'message' => 'student_id'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('teachersid')) {
+			if($errors->has('teacher_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'teachersid'
+					'message' => 'teacher_id'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('emplyeesid')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyeesid'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -98,9 +98,9 @@ class AssigneeInternController extends Controller
 		$assign = new AssignIntern;
 
 		$assign->period = $request->period;
-		$assign->studentsid = $request->studentsid;
-		$assign->teachersid = $request->teachersid;
-		$assign->emplyeesid = $request->emplyeesid;
+		$assign->student_id = $request->student_id;
+		$assign->teacher_id = $request->teacher_id;
+		$assign->employee_id = $request->employee_id;
 		$assign->topic_id = $request->topic_id;
 
 		$topics->save();
@@ -119,9 +119,9 @@ class AssigneeInternController extends Controller
         }
 
         $assign = DB::table('assign_interns')->where('id', $id)
-        	->join('users', 'users.id = assign_interns.studentsid')
-	    	->join('users', 'users.id = assign_interns.teachersid')
-			->join('users', 'users.id = assign_interns.emplyeesid')
+        	->join('users', 'users.id = assign_interns.student_id')
+	    	->join('users', 'users.id = assign_interns.teacher_id')
+			->join('users', 'users.id = assign_interns.employee_id')
 			->join('topics', 'topics.id = assign_interns.topic_id')
 			->select('users.name as student_name', 'users.name as teacher_name', 'users.name as employee_name',
 			'topics.title as tilte', 'assign_interns.period as period')
@@ -142,10 +142,10 @@ class AssigneeInternController extends Controller
         $validator = Validator::make($request->all(), 
 			[
 				'period' => 'required|string|max:255',
-				'studentsid' => 'required|string|max:255',
-				'teachersid' => 'required|string|max:255',
-				'emplyeesid' => 'required|numeric|max:255',
-                'topic_id' => 'required|numeric|max:3',
+				'student_id' => 'required|string|max:255',
+				'teacher_id' => 'required|string|max:255',
+				'employee_id' => 'required|max:255',
+                'topic_id' => 'required|max:3',
 			]
 		);
 		
@@ -159,23 +159,23 @@ class AssigneeInternController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('studentsid')) {
+			if($errors->has('student_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'studentsid'
+					'message' => 'student_id'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('teachersid')) {
+			if($errors->has('teacher_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'teachersid'
+					'message' => 'teacher_id'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('emplyeesid')) {
+			if($errors->has('emplyee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyeesid'
+					'message' => 'emplyee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -192,9 +192,9 @@ class AssigneeInternController extends Controller
 		$assign = AssignIntern::find($id);
 
 		$assign->period = $request->period;
-		$assign->studentsid = $request->studentsid;
-		$assign->teachersid = $request->teachersid;
-		$assign->emplyeesid = $request->emplyeesid;
+		$assign->student_id = $request->student_id;
+		$assign->teacher_id = $request->teacher_id;
+		$assign->emplyee_id = $request->emplyee_id;
 		$assign->topic_id = $request->topic_id;
 
 		$topics->save();

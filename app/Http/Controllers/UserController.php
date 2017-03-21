@@ -28,7 +28,7 @@ class UserController extends Controller
     public function index()
     {
 		//get all users from database
-        $users = DB::select('select users.*,
+        $users = DB::select('select users.name, users.username, users.email, users.firstname, users.lastname, users.phonenumber,
 			groups.name as groupname
 			from users, groups 
 			where users.group_id = groups.id');
@@ -120,21 +120,33 @@ class UserController extends Controller
 			$returnArray = array('result' => false);
 			return response()->json($returnArray);			
 		}
-		//create a new user object
-		$user = new User;
+		// //create a new user object
+		// $user = new User;
 		
-		//assign each input with its respective value in the object
-		$user->username = $request->username;
-		$user->firstname = $request->firstname;
-		$user->lastname = $request->lastname;
-		$user->email = $request->email;
-		$user->password = bcrypt($request->password);
-		$user->phonenumber = $request->phonenumber;
-		$user->group_id = (int)$request->group_id;
-		$user->status = 1;
+		// //assign each input with its respective value in the object
+		// $user->username = $request->username;
+		// $user->firstname = $request->firstname;
+		// $user->lastname = $request->lastname;
+		// $user->email = $request->email;
+		// $user->password = bcrypt($request->password);
+		// $user->phonenumber = $request->phonenumber;
+		// $user->group_id = (int)$request->group_id;
+		// $user->status = 1;
 		
-		//save the object's value into the database
-		$user->save();
+		// //save the object's value into the database
+		// $user->save();
+
+		$user = array();
+		$user['username'] = $request->username;
+		$user['firstname'] = $request->firstname;
+		$user['lastname'] = $request->lastname;
+		$user['email'] = $request->email;
+		$user['password'] = bcrypt($request->password);
+		$user['phonenumber'] = $request->phonenumber;
+		$user['group_id'] = (int)$request->group_id;
+		$user['status'] = 1;
+
+		DB::table('users')->insert($users);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
@@ -263,7 +275,7 @@ class UserController extends Controller
         	groups.name as groupName, 
         	groups.id as groupId
 			from users, groups 
-			where users.groupid = groups.id and users.id = ?', [$id]);
+			where users.group_id = groups.id and users.id = ?', [$id]);
 		return response()->json($user);
     }
 
@@ -284,10 +296,10 @@ class UserController extends Controller
 
         $user =	DB::select('select users.id, users.username, users.name, users.email
 			from users, groups 
-			where users.groupid = groups.id and users.id = ?', [$id]);
+			where users.group_id = groups.id and users.id = ?', [$id]);
         $group = DB::select('select groups.* 
 			from users, groups 
-			where users.groupid = groups.id and users.id = ?', [$id]);
+			where users.group_id = groups.id and users.id = ?', [$id]);
         $user[0]->group = $group[0];
 		return response()->json($user[0]);
     }
@@ -301,19 +313,19 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-    	if (!is_numeric($id)) {
-    		return response()->json(['result' => false, 'message' => 'id must be number']);
+    	if (!is_int($id)) {
+    		return response()->json(['result' => false, 'message' => 'id must be integer']);
     	}
 
-    	if ((int)$id > 10000) {
-    		return response()->json(['result' => false, 'message' => 'id is too big']);
+    	if ((int)$id > 1000000 || (int)$id < 0) {
+    		return response()->json(['result' => false, 'message' => 'id is not accept!!']);
     	}
 		//validate the input variable from the post request
 		$validator = Validator::make($request->all(), 
 			[
 				'name' => 'required|max:255',
 				'email' => 'required|email|max:255',
-				'groupid' => 'required|integer|digits_between:1,6',
+				'group_id' => 'required|max:1000',
 			]
 		);
 		//if the validation fails, terminate the program
@@ -329,24 +341,9 @@ class UserController extends Controller
 			return response()->json($returnArray, 400);
 		}
 		
- 		//get all group id from database
-		$groupIds = DB::select('select id from groups');
-		
-		//initialize a blank array for storing group id
-		$groupIdArray =	array();
-		
-		//fetch the object into int array
-		foreach($groupIds as $groupId){
-			$groupIdArray[] = $groupId->id;
-		}
-
-		//for temporary, save the groupid input value
-		$groupidTemp = $request->groupid;
-		
-		//if that group id is not existed in the database, terminate the request
-		if(!in_array((int)$groupidTemp, $groupIdArray)){
-			$returnArray = array('result' => false);
-			return response()->json($returnArray, 400);			
+ 		$check_group_exist = DB::table('groups')->where('id', $request->group_id)->first();
+		if (is_null($check_group_exist)) {
+			return response()->json(['result' => false, 'reason' => 'group_id not exist!!']);
 		}
 
 		//check if the username and email is used or not
@@ -361,7 +358,7 @@ class UserController extends Controller
 		//assign each input with its respective value in the object
 		$user->name = $request->name;
 		$user->email = $request->email;
-		$user->groupid = (int)$request->groupid;
+		$user->group_id = (int)$request->group_id;
 		
 		//save the object's value into the database
 		$check = $user->save();

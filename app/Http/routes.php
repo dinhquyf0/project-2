@@ -149,3 +149,25 @@ Route::post('/update_department/{id}', 'SchoolController@updateDepartment');
 
 Route::delete('/delete_department/{id}', 'SchoolController@destroyDepartment');
 
+
+//Route for Company
+Route::get('/companies', 'EmployeeController@indexCompanies');
+
+Route::post('/create_company', 'EmployeeController@storeCompany');
+
+Route::get('/show_company/{id}', 'EmployeeController@showCompany');
+
+Route::post('/update_company/{id}', 'EmployeeController@updateCompany');
+
+Route::delete('/delete_company/{id}', 'EmployeeController@destroyCompany');
+
+//Route for Employee
+Route::get('/employees', 'EmployeeController@indexEmployees');
+
+Route::post('/create_employee', 'EmployeeController@storeEmployee');
+
+Route::get('/show_employee/{id}', 'EmployeeController@showEmployee');
+
+Route::post('/update_employee/{id}', 'EmployeeController@updateEmployee');
+
+Route::delete('/delete_employee/{id}', 'EmployeeController@destroyEmployee');
