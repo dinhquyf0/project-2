@@ -120,21 +120,22 @@ class UserController extends Controller
 			$returnArray = array('result' => false);
 			return response()->json($returnArray);			
 		}
-		// //create a new user object
-		// $user = new User;
+		DB::update("ALTER TABLE users AUTO_INCREMENT = 1");
+		//create a new user object
+		$user = new User;
 		
-		// //assign each input with its respective value in the object
-		// $user->username = $request->username;
-		// $user->firstname = $request->firstname;
-		// $user->lastname = $request->lastname;
-		// $user->email = $request->email;
-		// $user->password = bcrypt($request->password);
-		// $user->phonenumber = $request->phonenumber;
-		// $user->group_id = (int)$request->group_id;
-		// $user->status = 1;
+		//assign each input with its respective value in the object
+		$user->username = $request->username;
+		$user->firstname = $request->firstname;
+		$user->lastname = $request->lastname;
+		$user->email = $request->email;
+		$user->password = bcrypt($request->password);
+		$user->phonenumber = $request->phonenumber;
+		$user->group_id = (int)$request->group_id;
+		$user->status = 1;
 		
-		// //save the object's value into the database
-		// $user->save();
+		//save the object's value into the database
+		$user->save();
 
 		// $user = array();
 		// $user['username'] = $request->username;
@@ -147,9 +148,6 @@ class UserController extends Controller
 		// $user['status'] = 1;
 
 		// DB::table('users')->insert($user);
-
-		DB::insert('INSERT INTO users (username, password, group_id) values (?, ?, ?)',
-		 [$request->username, bcrypt($request->password), $request->group_id]);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
