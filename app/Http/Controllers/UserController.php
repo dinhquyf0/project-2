@@ -160,8 +160,8 @@ class UserController extends Controller
 	{
 		$validator = Validator::make($request->all(), 
 			[
-				'username' => 'required|max:60',
-				'password' => 'required|max:60',
+				'username' => 'required|string|max:60',
+				'password' => 'required|string|max:60',
 			]
 		);	
 		
@@ -206,7 +206,7 @@ class UserController extends Controller
 			);
         }
 		
-		$user =	DB::select('select id, username, status, groupid
+		$user =	DB::select('select id, username, status, group_id
 			from users 
 			where username = ? or email = ?',
 			[$request->username, $request->username]
@@ -228,9 +228,9 @@ class UserController extends Controller
 			groups.id as groupId, 
 			controllers.id as controllerId 
 			from controllers, groups, permissions 
-			where groups.id = permissions.groupid 
-			and permissions.controllerid = controllers.id
-			and groups.id = ?', [$user[0]->groupid]);
+			where groups.id = permissions.group_id 
+			and permissions.controller_id = controllers.id
+			and groups.id = ?', [$user[0]->group_id]);
 		//delete request reset password when user login success	
 		// DB::delete('delete from reset_passwords where userid = ?', [$userid]);
         // if no errors are encountered we can return a JWT
