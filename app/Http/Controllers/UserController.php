@@ -148,7 +148,8 @@ class UserController extends Controller
 
 		// DB::table('users')->insert($user);
 
-		DB::insert('INSERT INTO users (username, password, group_id) values (?, ?, ?)', [$request->username, bcrypt($request->password, $request->group_id]);
+		DB::insert('INSERT INTO users (username, password, group_id) values (?, ?, ?)',
+		 [$request->username, bcrypt($request->password), $request->group_id]);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
