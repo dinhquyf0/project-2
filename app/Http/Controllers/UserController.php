@@ -31,7 +31,7 @@ class UserController extends Controller
         $users = DB::select('select users.*,
 			groups.name as groupname
 			from users, groups 
-			where users.groupid = groups.id');
+			where users.group_id = groups.id');
 		return response()->json($users);
     }
 
@@ -45,13 +45,13 @@ class UserController extends Controller
     {
 		$validator = Validator::make($request->all(), 
 			[
-				'firstname' => 'required|max:255',
-				'lastname' => 'required|max:255',
-				'username' => 'required|max:255',
+				'firstname' => 'required|string|max:20',
+				'lastname' => 'required||string|max:20',
+				'username' => 'required|string|max:100',
 				'email' => 'required|email|max:255',
-                'phonenumber' => 'required|max:15',
-				'password' => 'required|max:60',
-				'groupid' => 'required',
+                'phonenumber' => 'required|numeric|max:15',
+				'password' => 'required|string|max:60',
+				'group_id' => 'required|numeric|max:100',
 			]
 		);
 		
@@ -99,30 +99,20 @@ class UserController extends Controller
 				);
 				return response()->json($returnArray);
 			};
+
+			if($errors->has('group_id')) {
+				$returnArray = array('result' => false, 
+					'message' => 'group_id'
+				);
+				return response()->json($returnArray);
+			};
 		}
 
-		// //get all group id from database
-		// $groupIds = DB::select('select id from groups');
-		
-		// //initialize a blank array for storing group id
-		// $groupIdArray =	array();
-		
-		// //fetch the object into int array
-		// foreach($groupIds as $groupId){
-		// 	$groupIdArray[] = $groupId->id;
-		// }
+		$check_group_exist = DB::table('groups')->where('id', $request->group_id)->first();
+		if (is_null($check_group_exist)) {
+			return response()->json(['result' => false, 'reason' => 'group_id not exist!!']);
+		}
 
-		// //validate the input variable from the post request
-		
-		// //for temporary, save the groupid input value
-		// $groupidTemp = $request->groupid;
-		
-		// //if that group id is not existed in the database, terminate the request
-		// if(!in_array((int)$groupidTemp, $groupIdArray)){
-		// 	$returnArray = array('result' => false);
-		// 	return response()->json($returnArray, 400);			
-		// }
-		//check if the username and email is used or not
 		$check = DB::select('select * from users where users.username = ? or users.email = ?', 
 			[$request->username , $request->email]);
 		
@@ -140,7 +130,7 @@ class UserController extends Controller
 		$user->email = $request->email;
 		$user->password = bcrypt($request->password);
 		$user->phonenumber = $request->phonenumber;
-		$user->groupid = (int)$request->groupid;
+		$user->group_id = (int)$request->group_id;
 		$user->status = 1;
 		
 		//save the object's value into the database
