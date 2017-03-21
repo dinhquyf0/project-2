@@ -14,10 +14,10 @@ class CreatePermissionsTable extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('groupid')->unsigned();
-            $table->integer('controllerid')->unsigned();
-            $table->foreign('groupid')->references('id')->on('groups')->onDelete('cascade');
-            $table->foreign('controllerid')->references('id')->on('controllers')->onDelete('cascade');
+            $table->integer('group_id')->unsigned();
+            $table->integer('controller_id')->unsigned();
+            $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade');
+            $table->foreign('controller_id')->references('id')->on('controllers')->onDelete('cascade');
             $table->timestamps();
         });
     }
