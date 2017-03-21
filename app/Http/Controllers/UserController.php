@@ -49,9 +49,9 @@ class UserController extends Controller
 				'lastname' => 'required||string|max:20',
 				'username' => 'required|string|max:100',
 				'email' => 'required|email|max:255',
-                'phonenumber' => 'required|numeric|max:15',
+                'phonenumber' => 'required|integer|max:15',
 				'password' => 'required|string|max:60',
-				'group_id' => 'required|numeric|max:100',
+				'group_id' => 'required|integer|max:100',
 			]
 		);
 		
