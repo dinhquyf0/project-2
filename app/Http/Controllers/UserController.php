@@ -146,7 +146,7 @@ class UserController extends Controller
 		$user['group_id'] = (int)$request->group_id;
 		$user['status'] = 1;
 
-		DB::table('users')->insert($users);
+		DB::table('users')->insert($user);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
