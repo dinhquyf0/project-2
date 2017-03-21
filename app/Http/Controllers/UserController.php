@@ -28,7 +28,7 @@ class UserController extends Controller
     public function index()
     {
 		//get all users from database
-        $users = DB::select('select users.username, users.email, users.firstname, users.lastname, users.phonenumber,
+        $users = DB::select('select users.id, users.username, users.email, users.firstname, users.lastname, users.phonenumber,
 			groups.name as groupname
 			from users, groups 
 			where users.group_id = groups.id');
