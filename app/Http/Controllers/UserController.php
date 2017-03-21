@@ -136,17 +136,19 @@ class UserController extends Controller
 		// //save the object's value into the database
 		// $user->save();
 
-		$user = array();
-		$user['username'] = $request->username;
-		$user['firstname'] = $request->firstname;
-		$user['lastname'] = $request->lastname;
-		$user['email'] = $request->email;
-		$user['password'] = bcrypt($request->password);
-		$user['phonenumber'] = $request->phonenumber;
-		$user['group_id'] = (int)$request->group_id;
-		$user['status'] = 1;
+		// $user = array();
+		// $user['username'] = $request->username;
+		// $user['firstname'] = $request->firstname;
+		// $user['lastname'] = $request->lastname;
+		// $user['email'] = $request->email;
+		// $user['password'] = bcrypt($request->password);
+		// $user['phonenumber'] = $request->phonenumber;
+		// $user['group_id'] = (int)$request->group_id;
+		// $user['status'] = 1;
 
-		DB::table('users')->insert($user);
+		// DB::table('users')->insert($user);
+
+		DB::insert('INSERT INTO users (username, password, group_id) values (?, ?, ?)', [$request->username, bcrypt($request->password, $request->group_id]);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
