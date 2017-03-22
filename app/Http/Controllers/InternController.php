@@ -19,12 +19,13 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InternController extends Controller
 {
-    public function indexCV()
+    public function indexCv()
     {
-    	# code...
+    	$cvs = DB::table('student_cvs')->get();
+    	return response()->json($cvs);
     }
 
-    public function storeCV(Request $request)
+    public function storeCv(Request $request)
     {
 	   	$validator = Validator::make($request->all(), 
 			[
@@ -202,7 +203,7 @@ class InternController extends Controller
 		$student_cv->otherskill = $request->otherskill;
 
 
-		$topics->save();
+		$student_cv->save();
 
 		return response()->json(['result' => true]);
     }

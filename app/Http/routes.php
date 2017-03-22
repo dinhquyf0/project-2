@@ -186,4 +186,7 @@ Route::post('/update_topic/{id}', 'TopicController@updateEmployee');
 
 Route::delete('/delete_topic/{id}', 'TopicController@destroyEmployee');
 
+//Route for cv
+Route::get('/cvs', 'InternController@indexCv');
 
+Route::post('/create_cv', 'InternController@storeCv');
