@@ -20,6 +20,7 @@ class CreateCompaniesTable extends Migration
             $table->string('address');
             $table->integer('phone');
             $table->string('email');
+            $table->smallInteger('accept')->default(1);
             $table->timestamps();
         });
 
