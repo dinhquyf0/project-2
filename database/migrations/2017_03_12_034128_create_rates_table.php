@@ -22,7 +22,7 @@ class CreateRatesTable extends Migration
             $table->string('period');
             $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('teacher_id')->references('id')->on('users')->onDelete('cascade');
-            $table->smallInteger('editable')->default(0)
+            $table->smallInteger('editable')->default(0);
             $table->timestamps();
         });
     }
