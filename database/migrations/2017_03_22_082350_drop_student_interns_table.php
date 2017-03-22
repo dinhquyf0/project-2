@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateStudentInternsTable extends Migration
+class DropStudentInternsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,19 @@ class CreateStudentInternsTable extends Migration
      */
     public function up()
     {
-        Schema::create('student_interns', function (Blueprint $table) {
+        Schema::table('student_interns', function (Blueprint $table) {
+            Schema::drop('student_interns');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::table('student_interns', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('student_id');
             $table->integer('topic_1')->unsigned()->nullable();
@@ -25,15 +37,5 @@ class CreateStudentInternsTable extends Migration
             $table->foreign('topic_expect')->references('id')->on('topics')->onDelete('cascade');
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
-        Schema::drop('student_interns');
     }
 }
