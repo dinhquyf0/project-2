@@ -179,12 +179,12 @@ class GroupController extends Controller
             return response()->json(['result' => false, 'message' => 'id is not accept!']);
         }
 		//default group ids => they could not be deleted
-		if(((int)$id ==	1) || ((int)$id	== 2) || ((int)$id == 3)||(int)$id == 13){
-			$returnArray = array("result" => false,
-				"reason" => "Group couldn't be deleted"
-			);
-			return response()->json($returnArray, 403);			
-		}
+		// if(((int)$id ==	1) || ((int)$id	== 2) || ((int)$id == 3)||(int)$id == 13){
+		// 	$returnArray = array("result" => false,
+		// 		"reason" => "Group couldn't be deleted"
+		// 	);
+		// 	return response()->json($returnArray, 403);			
+		// }
 		
 		//find the group by id
 		$data =	Group::find($id);
