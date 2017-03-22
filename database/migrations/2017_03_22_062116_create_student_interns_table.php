@@ -18,7 +18,7 @@ class CreateStudentInternsTable extends Migration
             $table->integer('topic_1')->unsigned()->nullable();
             $table->integer('topic_2')->unsigned()->nullable();
             $table->integer('topic_3')->unsigned()->nullable();
-            $table->integer('topic_expect)')->unsigned()->nullable();
+            $table->integer('topic_expect')->unsigned()->nullable();
             $table->foreign('topic_1')->references('id')->on('topics')->onDelete('cascade');
             $table->foreign('topic_2')->references('id')->on('topics')->onDelete('cascade');
             $table->foreign('topic_3')->references('id')->on('topics')->onDelete('cascade');
