@@ -212,4 +212,10 @@ class GroupController extends Controller
     public function createController(Request $request){
     	DB::insert('INSERT INTO controllers (name, description) value(?, ?) ', [$request->name, $request->description]);
     }
+
+    public function getControllers()
+    {
+    	$controllers = DB::table('controllers')->get();
+    	return response()->json($controllers);
+    }
 }

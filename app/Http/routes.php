@@ -105,6 +105,9 @@ Route::get('/user_permissions', 'PermissionController@get_private_permissions');
 Route::post('/create_controller', 'GroupController@createController');
     // ->middleware(['jwt.auth']);
 
+Route::get('/controllers', 'GroupController@getControllers');
+
+
 //Route for student
 Route::post('/create_student', 'StudentController@store');
 
@@ -171,3 +174,16 @@ Route::get('/show_employee/{id}', 'EmployeeController@showEmployee');
 Route::post('/update_employee/{id}', 'EmployeeController@updateEmployee');
 
 Route::delete('/delete_employee/{id}', 'EmployeeController@destroyEmployee');
+
+//Route for Topic
+Route::get('/topics', 'TopicController@index');
+
+Route::post('/create_topic', 'TopicController@storeEmployee');
+
+Route::get('/show_topic/{id}', 'TopicController@showEmployee');
+
+Route::post('/update_topic/{id}', 'TopicController@updateEmployee');
+
+Route::delete('/delete_topic/{id}', 'TopicController@destroyEmployee');
+
+
