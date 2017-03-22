@@ -28,7 +28,14 @@ class UserController extends Controller
     public function index()
     {
 		//get all users from database
-        $users = DB::select('select users.id, users.username, users.email, users.firstname, users.lastname, users.phonenumber,
+        $users = DB::select('select users.id, 
+        	users.username,
+        	users.email, 
+        	users.firstname, 
+        	users.lastname, 
+        	users.phonenumber,
+        	users.lock,
+        	users.status,
 			groups.name as groupname
 			from users, groups 
 			where users.group_id = groups.id');
@@ -120,7 +127,6 @@ class UserController extends Controller
 			$returnArray = array('result' => false);
 			return response()->json($returnArray);			
 		}
-		DB::update("ALTER TABLE users AUTO_INCREMENT = 1");
 		//create a new user object
 		$user = new User;
 		
@@ -129,6 +135,7 @@ class UserController extends Controller
 		$user->firstname = $request->firstname;
 		$user->lastname = $request->lastname;
 		$user->email = $request->email;
+		//brypt password become string has length is 60
 		$user->password = bcrypt($request->password);
 		$user->phonenumber = $request->phonenumber;
 		$user->group_id = (int)$request->group_id;
@@ -136,18 +143,6 @@ class UserController extends Controller
 		
 		//save the object's value into the database
 		$user->save();
-
-		// $user = array();
-		// $user['username'] = $request->username;
-		// $user['firstname'] = $request->firstname;
-		// $user['lastname'] = $request->lastname;
-		// $user['email'] = $request->email;
-		// $user['password'] = bcrypt($request->password);
-		// $user['phonenumber'] = $request->phonenumber;
-		// $user['group_id'] = (int)$request->group_id;
-		// $user['status'] = 1;
-
-		// DB::table('users')->insert($user);
 		
 		//return the true array so client could know the program is done.
 		$returnArray = array('result' => true);
@@ -237,13 +232,13 @@ class UserController extends Controller
 		/*
 		Save userpermission into MySQL when authenticate success
 		*/
-		$permissions = DB::select('select groups.name as groupName, 
-			groups.id as groupId, 
-			controllers.id as controllerId 
-			from controllers, groups, permissions 
-			where groups.id = permissions.group_id 
-			and permissions.controller_id = controllers.id
-			and groups.id = ?', [$user[0]->group_id]);
+		// $permissions = DB::select('select groups.name as groupName, 
+		// 	groups.id as groupId, 
+		// 	controllers.id as controllerId 
+		// 	from controllers, groups, permissions 
+		// 	where groups.id = permissions.group_id 
+		// 	and permissions.controller_id = controllers.id
+		// 	and groups.id = ?', [$user[0]->group_id]);
 		//delete request reset password when user login success	
 		// DB::delete('delete from reset_passwords where userid = ?', [$userid]);
         // if no errors are encountered we can return a JWT
