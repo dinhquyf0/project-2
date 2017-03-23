@@ -255,27 +255,7 @@ class TopicController extends Controller
 		$topics->status = $request->status;
 		$topics->stop = $request->stop;
 		$topics->emplyee_id = $request->employee_id;
-
-		$topics->save();
-
-		return response()->json(['result' => true]);
-    }
-
-    public function updateAcceptStatus($id)
-    {
-    	if (!is_int((int)$id)) {
-            return response()->json(['result' => false, 'message' => 'id must be integer!']);
-        }
-        if ((int)$id > 1000000 || (int)$id < 0) {
-            return response()->json(['result' => false, 'message' => 'id is not accept!']);
-        }
-
-        $topics = Topic::find($id);
-        if (is_null($topics)) {
-			return response()->json(['result' => false, 'reason' => 'id not found!!']);
-		}
-
-		$topics->is_accept = abs($topics->is_accept - 1);
+		$topics->is_accept = 0;
 
 		$topics->save();
 

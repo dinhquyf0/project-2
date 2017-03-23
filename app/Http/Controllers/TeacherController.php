@@ -385,7 +385,9 @@ class TeacherController extends Controller
     {
     	$validator = Validator::make($request->all(), 
 			[
-                'student_id' => 'required'
+                'student_id' => 'required',
+                'period' => 'required',
+                'status' => 'required'
 			]
 		);
 		
@@ -455,5 +457,63 @@ class TeacherController extends Controller
     		->get();
 
     	return response()->json($intents);
+    }
+
+    public function updateCompanyAccept($id)
+    {
+    	if ($this->group_id != 3) {
+    		return response()->json(['result' => false, 'permission denie']);
+    	}
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $company = Company::find($id);
+        if (is_null($company)) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+
+        $company->is_accept = abs($company->is_accept - 1);
+
+        $check = $company->save();
+
+        if (is_null($check)) {
+        	return response()->json(['result' => false, 'reason' => 'update fails']);
+        }
+
+        return response()->json(['result' => true]);
+    }
+
+    public function updateTopicAccept($id)
+    {
+    	if ($this->group_id != 3) {
+    		return response()->json(['result' => false, 'permission denie']);
+    	}
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $topic = Topic::find($id);
+        if (is_null($topic)) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+
+        $topic->is_accept = abs($topic->is_accept - 1);
+
+        $check = $topic->save();
+
+        if (is_null($check)) {
+        	return response()->json(['result' => false, 'reason' => 'update fails']);
+        }
+
+        return response()->json(['result' => true]);
     }
 }

@@ -134,6 +134,50 @@ Route::post('/update_teacher/{id}', 'TeacherController@update');
 
 Route::delete('/delete_teacher/{id}', 'TeacherController@destroy');
 
+Route::get('/dead_lines', 'TeacherController@showDeadLine');
+
+Route::post('/create_dead_line', 'TeacherController@createDeadLine');
+
+Route::post('/update_dead_line/{id}', 'TeacherController@updateDeadLine');
+
+Route::delete('/delete_dead_line/{id}', 'TeacherController@deleteDeadLine');
+
+Route::get('/intern_statuses', 'TeacherController@indexInternStatus');
+
+Route::post('/create_intern_statuses', 'TeacherController@storeInternStatus');
+
+Route::post('/update_intern_statuses/{id}', 'TeacherController@updateInternStatus');
+
+Route::get('/get_intent_statuses', 'TeacherController@getStudentIntent');
+
+Route::get('/accept_company/{id}', 'TeacherController@updateCompanyAccept');
+
+Route::get('/accept_topic/{id}', 'TeacherController@updateTopicAccept');
+
+//Route for Rate
+Route::get('/rates', 'RateController@index');
+
+Route::post('/create_rate', 'RateController@store');
+
+Route::get('/show_rate/{id}', 'RateController@show');
+
+Route::post('/update_rate/{id}', 'RateController@update');
+
+Route::delete('/delte_rate/{id}', 'RateController@destroy');
+
+//Route for AssigneeInternController
+Route::get('/assign_interns', 'AssigneeInternController@index');
+
+Route::post('/create_assign_intern', 'AssigneeInternController@store');
+
+Route::post('/update_assign_intern/{id}', 'AssigneeInternController@update');
+
+Route::get('/show_assign_interns/{id}', 'AssigneeInternController@show');
+
+Route::delete('/delete_assign_interns/{id}', 'AssigneeInternController@destroy');
+
+Route::get('/get_compare', 'AssigneeInternController@compare');
+
 //Route for class
 Route::get('/classes', 'SchoolController@indexClass');
 
@@ -167,6 +211,17 @@ Route::get('/show_company/{id}', 'EmployeeController@showCompany');
 Route::post('/update_company/{id}', 'EmployeeController@updateCompany');
 
 Route::delete('/delete_company/{id}', 'EmployeeController@destroyCompany');
+
+//Route for CompanyRate
+Route::get('/company_rates', 'CompanyRateController@index');
+
+Route::post('/create_company_rate', 'CompanyRateController@store');
+
+Route::post('/update_company_rate/{id}', 'CompanyRateController@update');
+
+Route::get('/get_company_rate/{id}', 'CompanyRateController@show');
+
+Route::delete('/delete_company_rate/{id}', 'CompanyRateController@destroy');
 
 //Route for Employee
 Route::get('/employees', 'EmployeeController@indexEmployees');

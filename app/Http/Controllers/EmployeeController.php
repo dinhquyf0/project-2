@@ -402,32 +402,6 @@ class EmployeeController extends Controller
 
     }
 
-    public function updateCompanyAccept($id)
-    {
-    	if (!is_int((int)$id)) {
-            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
-        }
-
-        if ((int)$id > 1000000000 || (int)$id < 0) {
-            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
-        }
-
-        $company = Company::find($id);
-        if (is_null($company)) {
-        	return response()->json(['result' => false, 'reason' => 'id not exist']);
-        }
-
-        $company->is_accept = abs($company->is_accept - 1);
-
-        $check = $company->save();
-
-        if (is_null($check)) {
-        	return response()->json(['result' => false, 'reason' => 'update fails']);
-        }
-
-        return response()->json(['result' => true]);
-    }
-
     public function destroyCompany($id)
     {
     	if (!is_int((int)$id)) {
