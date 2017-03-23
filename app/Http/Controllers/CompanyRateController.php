@@ -5,19 +5,63 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use DB;
+use App\User;
+use App\CompanyRate;
+use App\Employee;
+use App\TimeCheckingManager;
+
+use Validator;
+
+use App\Http\Controllers\Controller;
+
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Middleware\BaseMiddleware;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class CompanyRateController extends Controller
 {
+	public function __construct(){
+		$user = JWTAuth::parseToken()->authenticate();
+		$this->user_id = $user['id'];
+		$this->group_id = $user['groupid'];
+	}
     public function index()
     {
-    	$companies = DB::table('company_rates')
-    	->join('users', 'company_rates.student_id = users.id')
-		->join('users', 'company_rates.teacher_id = users.id')
-		->select('company_rates.period', 'company_rates.point', 'company_rates.rate', 
-			'users.name as student_name', 'users.name as teacher_name')
-    	->get();
 
-    	return response()->json($companies);
+        $company_rate = DB::table('company_rates')
+        	->join('users', 'company_rates.student_id', '=', 'users.id')
+	    	->join('users', 'company_rates.employee_id', '=', ' users.id')
+	    	->join('topics', 'topics.id = assign_interns.topic_id')
+        	->get();
+    	$return_array = array();
+
+        foreach ($company_rate as $key => $value) {
+        	$temp = array();
+
+        	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['student_id'] = $student->id;
+        	$temp['student_first_name'] = $student->firstname;
+        	$temp['student_last_name'] = $student->lastname;
+
+        	$employee = DB::table('users')->where('id', $value->employee_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['employee_id'] = $employee->id;
+        	$temp['employee_first_name'] = $employee->firstname;
+        	$temp['employee_last_name'] = $employee->lastname;
+
+        	$topic = DB::table('topics')->where('id', $value->topic_id)->select('id', 'title')->first();
+        	$temp['topic_id'] = $topic->id;
+        	$temp['topic_title'] = $topic->title;
+
+        	$temp['point'] = $value->point;
+        	$temp['rate'] = $value->rate;
+        	$temp['period'] = $value->period;
+
+        	$return_array[] = $temp;
+        }
+    	
+    	return response()->json($company_rate);
     }
 
     public function store(Request $request)
@@ -28,7 +72,6 @@ class CompanyRateController extends Controller
 				'period' => 'required|max:5',
 				'rate' => 'required|string|max:255',
 				'student_id' => 'required|max:100',
-				'employee_id' => 'required|max:15',
 			]
 		);
 		
@@ -63,18 +106,12 @@ class CompanyRateController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('employee_id')) {
-				$returnArray = array('result' => false, 
-					'message' => 'employee_id'
-				);
-				return response()->json($returnArray);
-			};
 		}
 
 		$check_exist = DB::table('company_rates')
 		->where([
 			['student_id', $request->student_id],
-			['employee_id', $request->employee_id],
+			['employee_id', $this->user_id],
 			['point' => $request->point],
 			['period' => $request->period],
 			['rate' => $request->rate]
@@ -90,7 +127,7 @@ class CompanyRateController extends Controller
 		$company_rate->period = $request->period;
 		$company_rate->rate = $request->rate;
 		$company_rate->student_id = $request->student_id;
-		$company_rate->employee_id = $request->employee_id;
+		$company_rate->employee_id = $this->user_id;
 
 		$check_save = $company_rate->save();
 
@@ -115,6 +152,32 @@ class CompanyRateController extends Controller
         if (is_null($company_rate)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
+    	$return_array = array();
+
+        foreach ($company_rate as $key => $value) {
+
+        	$temp = array();
+
+        	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['student_id'] = $student->id;
+        	$temp['student_first_name'] = $student->firstname;
+        	$temp['student_last_name'] = $student->lastname;
+
+        	$employee = DB::table('users')->where('id', $value->employee_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['employee_id'] = $employee->id;
+        	$temp['employee_first_name'] = $employee->firstname;
+        	$temp['employee_last_name'] = $employee->lastname;
+
+        	$topic = DB::table('topics')->where('id', $value->topic_id)->select('id', 'title')->first();
+        	$temp['topic_id'] = $topic->id;
+        	$temp['topic_title'] = $topic->title;
+
+        	$temp['point'] = $value->point;
+        	$temp['rate'] = $value->rate;
+        	$temp['period'] = $value->period;
+
+        	$return_array[] = $temp;
+        }
     	
     	return response()->json($company_rate);
     }
@@ -132,7 +195,6 @@ class CompanyRateController extends Controller
         $validator = Validator::make($request->all(), 
 			[
 				'student_id' => 'required|max:255',
-				'employee_id' => 'required|max:255',
 				'point' => 'required|max:10',
 				'period' => 'required|max:5',
 				'rate' => 'required|string|max:255',
@@ -179,23 +241,9 @@ class CompanyRateController extends Controller
 
 		}
 
-		$check_exist = DB::table('company_rates')
-			->where([
-				['student_id', $request->student_id],
-				['employee_id', $request->employee_id],
-				['point' => $request->point],
-				['period' => $request->period],
-				['rate' => $request->rate]
-			])->get();
-
-		if (!is_null($check_exist)) {
-			return response()->json(['result' => false, 'reason' => 'company exist!!']);
-		}	
-		
-
 		$company_rate = CompanyRate::find($id);
 
-        if (count($company) == 0) {
+        if (is_null($company_rate)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
@@ -203,7 +251,7 @@ class CompanyRateController extends Controller
 		$company_rate->period = $request->period;
 		$company_rate->rate = $request->rate;
 		$company_rate->student_id = $request->student_id;
-		$company_rate->employee_id = $request->employee_id;
+		$company_rate->employee_id = $this->user_id;
 
 		$check_save = $company_rate->save();
 

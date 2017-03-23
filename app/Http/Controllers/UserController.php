@@ -139,6 +139,7 @@ class UserController extends Controller
 		$user->password = bcrypt($request->password);
 		$user->phonenumber = $request->phonenumber;
 		$user->group_id = (int)$request->group_id;
+		$user->lock = 0;
 		$user->status = 1;
 		
 		//save the object's value into the database
@@ -523,4 +524,6 @@ class UserController extends Controller
         $returnArray = array('result' => true);
         return response()->json($returnArray);
     }
+
+    
 }

@@ -28,47 +28,50 @@ class RateController extends Controller
 	}
 	public function index()
     {
-    	$companies = DB::table('rates')
+    	$rates = DB::table('rates')
     		->join('users', 'rates.student_id = users.id')
     		->join('users', 'rates.teacher_id = users.id')
-    		->select('rates.period', 'rates.point', 'rates.rate', 'users.name as student_name', 'users.name as teacher_name')
     		->get();
+    	$return_array = array();
 
-    	return response()->json($companies);
+        foreach ($rates as $key => $value) {
+        	$temp = array();
+        	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['student_id'] = $student->id;
+        	$temp['student_first_name'] = $student->firstname;
+        	$temp['student_last_name'] = $student->lastname;
+
+        	$teacher = DB::table('users')->where('id', $value->teacher_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['teacher_id'] = $teacher->id;
+        	$temp['teacher_first_name'] = $teacher->firstname;
+        	$temp['teacher_last_name'] = $teacher->lastname;
+
+        	$temp['mid_point'] = $value->mid_point;
+        	$temp['final_point'] = $value->final_point;
+        	$temp['rate'] = $value->rate;
+        	$temp['period'] = $value->period;
+        	$return_array[] = $temp;
+        }
+    	
+    	return response()->json($company_rate);
     }
 
     public function store(Request $request)
     {
     	$validator = Validator::make($request->all(), 
 			[
-				'point' => 'required|max:10',
 				'period' => 'required|max:5',
-				'rate' => 'required|string|max:255',
 				'student_id' => 'required|max:10000',
-				'teacher_id' => 'required|max:10000',
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('point')) {
-				$returnArray = array('result' => false, 
-					'message' => 'point!'
-				);
-				return response()->json($returnArray);
-			};
 
 			if($errors->has('period')) {
 				$returnArray = array('result' => false, 
 					'message' => 'period'
-				);
-				return response()->json($returnArray);
-			};
-
-			if($errors->has('rate')) {
-				$returnArray = array('result' => false, 
-					'message' => 'rate'
 				);
 				return response()->json($returnArray);
 			};
@@ -79,20 +82,14 @@ class RateController extends Controller
 				);
 				return response()->json($returnArray);
 			};
-
-			if($errors->has('teacher_id')) {
-				$returnArray = array('result' => false, 
-					'message' => 'teacher_id'
-				);
-				return response()->json($returnArray);
-			};
 		}
 
 		$check_exist = DB::table('rates')
 		->where([
 			['student_id', $request->student_id],
-			['teacher_id', $request->teacher_id],
-			['point' => $request->point],
+			['teacher_id', $this->user_id],
+			['mid_point' => $request->mid_point],
+			['final_point' => $request->final_point],
 			['period' => $request->period],
 			['rate' => $request->rate]
 		])->get();
@@ -103,11 +100,13 @@ class RateController extends Controller
 		
 		$rate = new Rate;
 
-		$rate->point = $request->point;
+		$rate->mid_point = $request->mid_point;
+		$rate->final_point = $request->final_point;
 		$rate->period = $request->period;
 		$rate->rate = $request->rate;
 		$rate->student_id = $request->student_id;
-		$rate->teacher_id = $request->teacher_id;
+		$rate->teacher_id = $this->user_id;
+		$rate->editable = 0;
 
 		$check_save = $rate->save();
 
@@ -128,16 +127,38 @@ class RateController extends Controller
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
 
-        $rate = DB::table('rates')->where('id', $id)->first();
+        $rates = DB::table('rates')->where('id', $id)->first();
         if (is_null($rate)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	return response()->json($rate);
+        foreach ($rates as $key => $value) {
+        	$temp = array();
+        	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['student_id'] = $student->id;
+        	$temp['student_first_name'] = $student->firstname;
+        	$temp['student_last_name'] = $student->lastname;
+
+        	$teacher = DB::table('users')->where('id', $value->teacher_id)->select('id', 'firstname', 'lastname')->first();
+        	$temp['teacher_id'] = $teacher->id;
+        	$temp['teacher_first_name'] = $teacher->firstname;
+        	$temp['teacher_last_name'] = $teacher->lastname;
+
+        	$temp['mid_point'] = $value->mid_point;
+        	$temp['final_point'] = $value->final_point;
+        	$temp['rate'] = $value->rate;
+        	$temp['period'] = $value->period;
+        	$return_array[] = $temp;
+        }
+    	
+    	return response()->json($company_rate);
     }
 
     public function update(Request $request, $id)
     {
+    	if ($this->group_id != 2 || $this->group_id != 3) {
+    		return response()->json(['result' => false, 'resaon' => 'this user do not have permission on this secsion']);
+    	}
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
@@ -149,10 +170,7 @@ class RateController extends Controller
         $validator = Validator::make($request->all(), 
 			[
 				'student_id' => 'required|max:255',
-				'teacher_id' => 'required|max:255',
-				'point' => 'required|max:10',
 				'period' => 'required|max:5',
-				'rate' => 'required|string|max:255',
 			]
 		);
 		
@@ -166,30 +184,9 @@ class RateController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('teacher_id')) {
-				$returnArray = array('result' => false, 
-					'message' => 'teacher_id'
-				);
-				return response()->json($returnArray);
-			};
-
-			if($errors->has('point')) {
-				$returnArray = array('result' => false, 
-					'message' => 'point'
-				);
-				return response()->json($returnArray);
-			};
-
 			if($errors->has('period')) {
 				$returnArray = array('result' => false, 
 					'message' => 'period'
-				);
-				return response()->json($returnArray);
-			};
-
-			if($errors->has('rate')) {
-				$returnArray = array('result' => false, 
-					'message' => 'rate'
 				);
 				return response()->json($returnArray);
 			};
@@ -199,8 +196,9 @@ class RateController extends Controller
 		$check_exist = DB::table('rates')
 			->where([
 				['student_id', $request->student_id],
-				['teacher_id', $request->teacher_id],
-				['point' => $request->point],
+				['teacher_id', $this->user_id],
+				['mid_point' => $request->mid_point],
+				['final_point' => $request->final_point],
 				['period' => $request->period],
 				['rate' => $request->rate]
 			])->get();
@@ -216,13 +214,18 @@ class RateController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
-		$rate->point = $request->point;
+		$rate->mid_point = $request->mid_point;
+		$rate->final_point = $request->final_point;
 		$rate->period = $request->period;
 		$rate->rate = $request->rate;
 		$rate->student_id = $request->student_id;
-		$rate->employee_id = $request->teacher_id;
+		$rate->teacher_id = $this->user_id;
+		$rate->editable = $rate->editable + 1;
+		if ($rate->editable > 2) {
+			return response()->json(['result' => false, 'reason' => 'rate is limit time']);
+		}
 
-		$check_save = $company_rate->save();
+		$check_save = $rate->save();
 
 		if (is_null($check_save)) {
 			return response()->json(['result' => false, 'reason' => 'save fails!!!']);

@@ -119,6 +119,10 @@ Route::post('/update_student/{id}', 'StudentController@update');
 
 Route::delete('/delete_student/{id}', 'StudentController@destroy');
 
+Route::post('/create_intent', 'StudentController@createIntent');
+
+Route::post('/update_intent/{id}', 'StudentController@updateIntent');
+
 //Route for teacher
 Route::get('/teachers', 'TeacherController@index');
 
@@ -186,7 +190,26 @@ Route::post('/update_topic/{id}', 'TopicController@updateEmployee');
 
 Route::delete('/delete_topic/{id}', 'TopicController@destroyEmployee');
 
+Route::get('/update_topic_accept/{id}', 'TopicController@updateAcceptStatus');
+
+Route::get('/show_topics_accept', 'TopicController@showTopicAccept');
+
 //Route for cv
 Route::get('/cvs', 'InternController@indexCv');
 
 Route::post('/create_cv', 'InternController@storeCv');
+
+Route::post('/update_cv', 'InternController@updateCv');
+
+Route::delete('/delete_cv/{id}', 'InternController@destroyCv');
+
+
+//Route for comment
+Route::get('/comments/{id}', 'CommentController@show');
+
+Route::post('/create_comment', 'CommentController@store');
+
+Route::post('/update_comment', 'CommentController@update');
+
+Route::delete('/delete_comment/{id}', 'CommentController@delete');
+

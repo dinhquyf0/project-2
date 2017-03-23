@@ -9,7 +9,9 @@ use App\Http\Requests;
 use DB;
 use App\User;
 use App\Teacher;
+use App\InternStatus;
 use App\Department;
+use App\DeadLine;
 
 use Validator;
 
@@ -268,5 +270,190 @@ class TeacherController extends Controller
         return response()->json(['result' => true]);
     }
 
+    public function showDeadLine()
+    {
+    	$deadlines = DB::table('dead_lines')->get();
+    	return response()->json($deadlines);
+    }
 
+    public function createDeadLine(Request $request)
+    {
+    	$validator = Validator::make($request->all(), 
+			[
+                'period' => 'required'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			return response()->json(['result' => false, 'message' => 'validate fails!!']);
+		}
+
+		$deadlines = new DeadLine;
+
+		$deadlines->company_register_topic = $request->company_register_topic;
+		$deadlines->student_register_topic = $request->student_register_topic;
+		$deadlines->company_rate = $request->company_rate;
+		$deadlines->mark = $request->mark;
+		$deadlines->company_report = $request->company_report;
+		$deadlines->student_report = $request->student_report;
+		$deadlines->period = $request->period;
+
+		$check_save = $deadlines->save();
+
+		if (is_null($check_save)) {
+			return response()->json(['result' => false]);
+		}
+
+		return response()->json(['result' => true]);
+    }
+
+    public function updateDeadLine(Request $request, $id)
+    {
+    	if (!is_numeric((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 10000 || (int) < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+    	$validator = Validator::make($request->all(), 
+			[
+                'period' => 'required'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			return response()->json(['result' => false, 'message' => 'validate fails!!']);
+		}
+
+		$deadlines = DeadLine::find($id);
+
+		$deadlines->company_register_topic = $request->company_register_topic;
+		$deadlines->student_register_topic = $request->student_register_topic;
+		$deadlines->company_rate = $request->company_rate;
+		$deadlines->mark = $request->mark;
+		$deadlines->company_report = $request->company_report;
+		$deadlines->student_report = $request->student_report;
+		$deadlines->period = $request->period;
+
+		$check_save = $deadlines->save();
+
+		if (is_null($check_save)) {
+			return response()->json(['result' => false]);
+		}
+
+		return response()->json(['result' => true]);
+    }
+
+    public function deleteDeadLine($id)
+    {
+    	if (!is_numeric((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 10000 || (int) < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $deadlines = DeadLine::find($id);
+
+        if (is_null($deadlines)) {
+        	return response()->json(['result' => false, 'reason' => 'id  not exist']);
+        } else {
+        	$deadlines->delete();
+        	return response()->json(['result' => true]);
+        }
+    }
+
+    public function indexInternStatus()
+    {
+    	if ($this->group_id != 3) {
+    		return response()->json(['result' => false, 'reason' => 'only teacher manager can use this']);
+    	}
+
+    	$intern_statuses = DB::table('intern_statuses')
+    		->join('users', 'intern_statuses.student_id', '=', 'users.id')
+    		->select('users.firstname', 'users.lastname', 'intern_statuses.period', 'intern_statuses.status', 'intern_statuses.link_report')
+    		->get();
+    	return response()->json($intern_statuses);
+    }
+
+    public function storeInternStatus(Request $request)
+    {
+    	$validator = Validator::make($request->all(), 
+			[
+                'student_id' => 'required'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			return response()->json(['result' => false, 'message' => 'validate fails!!']);
+		}
+
+		$intern_statuses = new InternStatus;
+
+		$intern_statuses->student_id = $request->student_id;
+		$intern_statuses->period = $request->period;
+		$intern_statuses->status = $request->status;
+
+		$intern_statuses->save();
+
+		return response()->json(['result' => true]);
+    }
+
+    public function updateInternStatus(Request $request, $id)
+    {
+    	if (!is_numeric((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 10000 || (int) < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+    	$validator = Validator::make($request->all(), 
+			[
+                'student_id' => 'required'
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			return response()->json(['result' => false, 'reason' => 'validate fails!!']);
+		}
+
+		$intern_statuses = InternStatus::find($id);
+
+		if (is_null($intern_statuses)) {
+			return response()->json(['result' => false, 'reason' => 'id not found']);
+		}
+
+		$intern_statuses->student_id = $request->student_id;
+		$intern_statuses->period = $request->period;
+		$intern_statuses->status = $request->status;
+
+		$intern_statuses->save();
+
+		return response()->json(['result' => true]);
+    }
+
+    public function getStudentIntent()
+    {
+    	if ($this->groupid != 3) {
+    		return response()->json(['result' => false, 'reason' => 'permission denie']);
+    	}
+
+    	$intents = DB::table('student_interns')
+    		->join('users', 'student_interns.student_id', '=', 'users.id')
+    		->select('users.firstname', 'users.lastname', 
+    			'student_interns.topic_1', 'student_interns.topic_2', 'student_interns.topic_3'
+    			'student_interns.period')
+    		->get();
+
+    	return response()->json($intents);
+    }
 }

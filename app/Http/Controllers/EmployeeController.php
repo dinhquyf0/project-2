@@ -94,7 +94,7 @@ class EmployeeController extends Controller
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
         }
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'message' => 'id is not accept!']);
         }
 
@@ -112,7 +112,7 @@ class EmployeeController extends Controller
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
         }
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'message' => 'id is not accept!']);
         }
 
@@ -179,7 +179,7 @@ class EmployeeController extends Controller
 	    if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
         }
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'message' => 'id is not accept!']);
         }	
 
@@ -198,7 +198,7 @@ class EmployeeController extends Controller
 
     public function indexCompanies()
     {
-    	$companies = DB::table('companies')->get();
+    	$companies = DB::table('companies')->where('is_accept', 1)->get();
 
     	return response()->json($companies);
     }
@@ -276,6 +276,7 @@ class EmployeeController extends Controller
 		$company->address = $request->address;
 		$company->phone = $request->phone;
 		$company->email = $request->email;
+		$company->is_accept = 0;
 
 		$check_save = $company->save();
 
@@ -292,7 +293,7 @@ class EmployeeController extends Controller
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
 
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
 
@@ -310,7 +311,7 @@ class EmployeeController extends Controller
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
 
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
 
@@ -401,13 +402,39 @@ class EmployeeController extends Controller
 
     }
 
+    public function updateCompanyAccept($id)
+    {
+    	if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+        $company = Company::find($id);
+        if (is_null($company)) {
+        	return response()->json(['result' => false, 'reason' => 'id not exist']);
+        }
+
+        $company->is_accept = abs($company->is_accept - 1);
+
+        $check = $company->save();
+
+        if (is_null($check)) {
+        	return response()->json(['result' => false, 'reason' => 'update fails']);
+        }
+
+        return response()->json(['result' => true]);
+    }
+
     public function destroyCompany($id)
     {
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
 
-        if ((int)$id > 1000000 || (int)$id < 0) {
+        if ((int)$id > 1000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
 

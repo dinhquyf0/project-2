@@ -10,6 +10,7 @@ use DB;
 use App\User;
 use App\Grade;
 use App\Student;
+use App\StudentInternt;
 
 use Validator;
 
@@ -22,12 +23,12 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class StudentController extends Controller
 {
-	// public function __construct()
-	// {
-	// 	$user = JWTAuth::parseToken()->authenticate();
-	// 	$this->userid = $user['id'];
-	// 	$this->groupid = $user['groupid'];
-	// }
+	public function __construct()
+	{
+		$user = JWTAuth::parseToken()->authenticate();
+		$this->userid = $user['id'];
+		$this->groupid = $user['groupid'];
+	}
     public function index()
     {
     	$return_array = array();
@@ -35,14 +36,14 @@ class StudentController extends Controller
     	foreach ($students as $key => $value) {
     		$temp = array();
     		$temp['id'] = $value->id;
-    		$temp['studentid'] = $value->studentid;
+    		$temp['student_id'] = $value->studentid;
     		$temp['schoolyear'] = $value->schoolyear;
     		$temp['grade'] = $value->grade;
     		$temp['fromyear'] = $value->fromyear;
     		$temp['toyear'] = $value->toyear;
     		$temp['major'] = $value->major;
-    		$temp['classid'] = $value->classid;
-    		$class_name = DB::select('select name from grades where id = ?', [$value->classid]);
+    		$temp['class_id'] = $value->classid;
+    		$class_name = DB::select('select name from grades where id = ?', [$value->class_id]);
  			if (count($class_name) == 0) {
  				$temp['classname'] = 'N/A';
  			} else {
@@ -58,29 +59,29 @@ class StudentController extends Controller
     {
     	$validator = Validator::make($request->all(), 
 			[	
-				'studentid' => 'required|max:255',
-				'schoolyear' => 'required|max:255',
+				'student_id' => 'required|max:255',
+				'school_year' => 'required|max:255',
 				'grade' => 'required|max:255',
-				'fromyear' => 'required|max:255',
-                'toyear' => 'required|max:15',
+				'from_year' => 'required|max:255',
+                'to_year' => 'required|max:15',
                 'major' => 'required|string|max:255',
-                'classid' => 'required'
+                'class_id' => 'required'
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('studentid')) {
+			if($errors->has('student_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'studentid!'
+					'message' => 'student_id!'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('schoolyear')) {
+			if($errors->has('school_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'schoolyear'
+					'message' => 'school_year'
 				);
 				return response()->json($returnArray);
 			};
@@ -92,16 +93,16 @@ class StudentController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('fromyear')) {
+			if($errors->has('from_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'fromyear'
+					'message' => 'from_year'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('toyear')) {
+			if($errors->has('to_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'toyear'
+					'message' => 'to_year'
 				);
 				return response()->json($returnArray);
 			};
@@ -113,7 +114,7 @@ class StudentController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('classid')) {
+			if($errors->has('class_id')) {
 				$returnArray = array('result' => false, 
 					'message' => 'classid'
 				);
@@ -122,28 +123,28 @@ class StudentController extends Controller
 
 		}
 
-		$check_class = Grade::find($request->classid);
+		$check_class = Grade::find($request->class_id);
 
 		if (count($check_class) == 0) {
 			return response()->json(['result' => false, 'reason' => 'class not exist!!']);
 		}
 
-		$check_student_info = Student::find($request->studentid);
+		$check_student_info = Student::find($request->student_id);
 
 		if (count($check_student_info) > 0) {
-			return response()->json(['result' => false, 'reason' => 'student exist!!']);
+			return response()->json(['result' => false, 'reason' => 'student id exist!!']);
 		}	
 		
 
 		$student = new Student;
 		$student->id = $this->userid;
-		$student->studentid = $request->studentid;
-		$student->schoolyear = $request->schoolyear;
+		$student->student_id = $request->student_id;
+		$student->school_year = $request->school_year;
 		$student->grade = $request->grade;
-		$student->fromyear = $request->fromyear;
-		$student->toyear = $request->toyear;
+		$student->from_year = $request->from_year;
+		$student->to_year = $request->to_year;
 		$student->major = $request->major;
-		$student->classid = $request->classid;
+		$student->class_id = $request->class_id;
 
 		$check_save = $student->save();
 
@@ -170,7 +171,7 @@ class StudentController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	$class = DB::select('select name from classes where id = ?', [$check->classid]);
+    	$class = DB::select('select name from classes where id = ?', [$check->class_id]);
 
     	$return_array = array();
 
@@ -196,29 +197,29 @@ class StudentController extends Controller
 
         $validator = Validator::make($request->all(), 
 			[	
-				'studentid' => 'required|max:255',
-				'schoolyear' => 'required|max:255',
+				'student_id' => 'required|max:255',
+				'school_year' => 'required|max:255',
 				'grade' => 'required|max:255',
-				'fromyear' => 'required|email|max:255',
-                'toyear' => 'required|max:15',
+				'from_year' => 'required|email|max:255',
+                'to_year' => 'required|max:15',
                 'major' => 'required|string|max:255',
-                'classid' => 'required'
+                'class_id' => 'required'
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('studentid')) {
+			if($errors->has('student_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'studentid!'
+					'message' => 'student_id!'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('schoolyear')) {
+			if($errors->has('school_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'schoolyear'
+					'message' => 'schooly_ear'
 				);
 				return response()->json($returnArray);
 			};
@@ -230,16 +231,16 @@ class StudentController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('fromyear')) {
+			if($errors->has('from_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'fromyear'
+					'message' => 'from_year'
 				);
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('toyear')) {
+			if($errors->has('to_year')) {
 				$returnArray = array('result' => false, 
-					'message' => 'toyear'
+					'message' => 'to_year'
 				);
 				return response()->json($returnArray);
 			};
@@ -251,9 +252,9 @@ class StudentController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('classid')) {
+			if($errors->has('class_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'classid'
+					'message' => 'class_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -266,13 +267,13 @@ class StudentController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
-		$student->studentid = $request->studentid;
-		$student->schoolyear = $request->schoolyear;
+		$student->student_id = $request->student_id;
+		$student->school_year = $request->school_year;
 		$student->grade = $request->grade;
-		$student->fromyear = $request->fromyear;
-		$student->toyear = $request->toyear;
+		$student->from_year = $request->from_year;
+		$student->to_year = $request->to_year;
 		$student->major = $request->major;
-		$student->classid = $request->classid;
+		$student->class_id = $request->class_id;
 
 		$check_save = $student->save();
 
@@ -296,13 +297,73 @@ class StudentController extends Controller
 
         $student = Student::find($id);
 
-        if (count($student) == 0) {
+        if (is_null($student)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
         $student->delete();
-        DB::delete('delete from student_cvs where studetnid = ?', [$id]);
+        DB::delete('delete from student_cvs where student_id = ?', [$id]);
 
         return response()->json(['result' => true]);
+    }
+
+
+
+    public function createIntent(Request $request)
+    {
+    	if ($request->topic_1 == $request->topic_2 || $request->topic_2 == $request->topic_3 || $request->topic_3 == $request->topic_1) {
+    		return response()->json(['result' => false, 'reason' => 'wrong topic']);
+    	}
+    	$student_internt = new StudentInternt;
+
+    	$student_internt->student_id = $this->user_id;
+    	$student_internt->topic_1 = $request->topic_1;
+    	$student_internt->topic_2 = $request->topic_2;
+    	$student_internt->topic_3 = $request->topic_3;
+
+    	$check_save = $student_internt->save();
+    	if (is_null($check_save)) {
+    		return response()->json(['result' => false, 'reason' => 'save fails!!!']);
+    	}
+
+    	return response()->json(['result' => true]);
+    }
+
+    public function updateIntent(Request $request, $id)
+    {
+		if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 10000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
+    	if ($request->topic_1 == $request->topic_2 || $request->topic_2 == $request->topic_3 || $request->topic_3 == $request->topic_1) {
+    		return response()->json(['result' => false, 'reason' => 'wrong topic']);
+    	}
+
+    	$student_internt = StudentInternt::find($id);
+
+    	if ($student_internt->user_id != $this->user_id) {
+    		return response()->json(['result' => false, 'reason' => 'user do not have permission for this intern']);
+    	}
+
+    	$student_internt->student_id = $this->user_id;
+    	$student_internt->topic_1 = $request->topic_1;
+    	$student_internt->topic_2 = $request->topic_2;
+    	$student_internt->topic_3 = $request->topic_3;
+
+    	$check_save = $student_internt->save();
+    	if (is_null($check_save)) {
+    		return response()->json(['result' => false, 'reason' => 'save fails!!!']);
+    	}
+
+    	return response()->json(['result' => true]);
+    }
+
+    public function sendReport(Request $request)
+    {
+    	//send file report
     }
 }
