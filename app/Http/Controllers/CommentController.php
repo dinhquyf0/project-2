@@ -23,14 +23,14 @@ class CommentController extends Controller
     {
         $user = JWTAuth::parseToken()->authenticate();
         $this->user_id = $user['id'];
-        $this->group_id = $user['groupid'];
+        $this->group_id = $user['group_id'];
     }
     public function create(Request $request){
         //validate the input variable from the post request
         $validator = Validator::make($request->all(),
             [
                 'comment' => 'required|string|max:255',
-                'place' => 'required|numeric|max:5',
+                'place' => 'required|numeric|max:10',
             ]
         );
 
@@ -38,11 +38,6 @@ class CommentController extends Controller
         if ($validator->fails()) {
             $return_array = array('result' => false, 'message' => 'validate fails!!!');
             return response()->json($return_array);
-        }
-        //check user exist or not in mySql
-        $user = User::find($this->user_id);
-        if (is_null($user)) {
-            return response()->json(['result' => false, 'message' => 'user does not exist!']);
         }
 
         //create a new comment object
@@ -73,16 +68,18 @@ class CommentController extends Controller
                 'comments.id', 'comments.user_id',
                 'comments.comment', 'comments.place', 'comments.updated_at')
             ->get();
-
-        return $comments;
+        if (is_null($comments)) {
+            return response()->json(['result' => false, 'reason' => 'id not found']);
+        }
+        return response()->json(['result' => true, 'data' => $comments]);
     }
 
     public function update(Request $request, $id){
-        //check userid is number or not
+        //check id is number or not
         if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'message' => 'id must be integer!']);
         }
-        //check if userid is too big
+        //check if id is too big or small than 0
         if ((int)$id > 1000000000000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'message' => 'id is not accept!']);
         }
@@ -103,12 +100,6 @@ class CommentController extends Controller
         //check if url is exist or not
         if (is_null($comment)) {
             return response()->json(['result' => false, 'message' => 'id not found!']);
-        }
-
-        $user = User::find($this->user_id);
-        //check user is exit or not
-        if (is_null($user)) {
-            return response()->json(['result' => false, 'message' => 'userid not found!']);
         }
 
         if ($comment->user_id != $this->user_id){
@@ -134,6 +125,7 @@ class CommentController extends Controller
 
         //find the group by id
         $data = Comment::find($id);
+        
         if ($data->user_id != $this->user_id){
             return response()->json(['result' => false, 'message' => 'comment not belong to this user']);
         }

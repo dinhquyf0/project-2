@@ -33,19 +33,14 @@ class SchoolController extends Controller
 
     public function indexClass()
     {
-    	$grades = DB::select('select * from grades');
-    	foreach ($grades as $key => $value) {
-    		$temp = array();
-    		$temp['id'] = $value->id;
-    		$temp['name'] = $value->name;
-    		$temp['no_students'] = $value->no_students;
-    		$temp['teacher_id'] = $value->teachersid;
-
-    		$teacher_name = DB::select('select name from teachers where id = ?', [$value->teacher_id]);
-    		$temp['teacher_name'] = $teacher_name[0]->name;
-    		$return_array[] = $temp;
+    	$grades = DB::table('grades')
+    		->join('users', 'grades.teacher_id', '=', 'users.id')
+    		->select('grades.id', 'grades.name', 'grades.no_students', 'users.firstname', 'users.lastname')
+    		->get();
+    	if (is_null($grades)) {
+    		return response()->json(['result' => false, 'reason' => 'db empty']);
     	}
-    	return response()->json($return_array);
+    	return response()->json(['result' => true, 'data' => $grades]);
     }
 
     public function storeClass(Request $request)
@@ -84,15 +79,15 @@ class SchoolController extends Controller
 
 		}
 
-		$check_teacher = Teacher::find($request->teacher_id);
+		$check_teacher = DB::table('teachers')->where('id', $request->teacher_id)->get();
 
-		if (count($check_teacher) == 0) {
+		if (is_null($check_teacher)) {
 			return response()->json(['result' => false, 'reason' => 'teacher not exist!!']);
 		}
 
-		$check_exist = Grade::find($request->name);
+		$check_exist = DB::table('grades')->where('name', $request->name)->get();
 
-		if (count($check_exist) > 0) {
+		if (!is_null($check_exist)) {
 			return response()->json(['result' => false, 'reason' => 'class exist!!']);
 		}	
 		
@@ -123,7 +118,7 @@ class SchoolController extends Controller
 
         $check = Grade::find($id);
 
-        if (count($check) == 0) {
+        if (is_null($check)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
@@ -190,9 +185,15 @@ class SchoolController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
-        $check_exist = Grade::find($request->name);
+		$check_teacher = DB::table('teachers')->where('id', $request->teacher_id)->get();
 
-		if (count($check_exist) > 0) {
+		if (is_null($check_teacher)) {
+			return response()->json(['result' => false, 'reason' => 'teacher not exist!!']);
+		}
+
+		$check_exist = DB::table('grades')->where('name', $request->name)->get();
+
+		if (!is_null($check_exist)) {
 			return response()->json(['result' => false, 'reason' => 'class exist!!']);
 		}	
 
@@ -202,10 +203,10 @@ class SchoolController extends Controller
 
 		$check_save = $grade->save();
 
-		if (count($check_save) == 0) {
+		if (is_null($check_save)) {
 			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
 		}
-
+		return response()->json(['result' => true]);
     }
 
     public function destroyClass($id)
@@ -220,12 +221,12 @@ class SchoolController extends Controller
 
         $grade = Grade::find($id);
 
-        if (count($grade) == 0) {
+        if (is_null($grade)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
         $grade->delete();
-        DB::delete('delete from students where class_id = ?', [$id]);
+        DB::update('update students set class_id = null where class_id = ?', [$id]);
 
         return response()->json(['result' => true]);
     }
@@ -234,8 +235,11 @@ class SchoolController extends Controller
 
     public function indexDepartment()
     {
-    	$teachers = DB::select('select * from teachers');
-    	return response()->json($teachers);
+    	$departments = DB::select('select * from departments');
+    	if (is_null($departments)) {
+    		return response()->json(['result' => false, 'reason' => 'db empty']);
+    	}
+    	return response()->json(['result' => true, 'data' => $departments]);
     }
 
     public function storeDepartment(Request $request)
@@ -282,11 +286,11 @@ class SchoolController extends Controller
 
 		}
 
-		$check_department = Department::find($request->name);
+		$check_exist = DB::table('departments')->where('name', $request->name)->get();
 
-		if (count($check_department) > 0) {
-			return response()->json(['result' => false, 'reason' => 'department exist!!']);
-		}
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'departments exist!!']);
+		}	
 		
 		$department = new Department;
 
@@ -316,11 +320,11 @@ class SchoolController extends Controller
 
         $check = Department::find($id);
 
-        if (count($check) == 0) {
+        if (is_null($check)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	$teachers = DB::select('select name from teachers where department_id = ?', [$id]);
+    	$teachers = DB::select('select name from teachers where dept_id = ?', [$id]);
 
     	$return_array = array();
 
@@ -335,7 +339,7 @@ class SchoolController extends Controller
     			$return_array['teachers'][] = $temp;
     		}
     	}
-    	return response()->json($return_array);
+    	return response()->json(['result' => true, 'data' => $return_array]);
     }
 
     public function updateDepartment(Request $request, $id)
@@ -395,10 +399,11 @@ class SchoolController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
-        $check_exist = Department::find($request->name);
-        if (count($check_exist) > 0) {
-        	return response()->json(['result' => false, 'reason' => 'name exist']);
-        }
+		$check_exist = DB::table('departments')->where('name', $request->name)->get();
+
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'departments exist!!']);
+		}	
 
         $department->name = $request->name;
 		$department->no_teachers = $request->no_teachers;
@@ -410,7 +415,7 @@ class SchoolController extends Controller
 		if (count($check_save) == 0) {
 			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
 		}
-
+		return response()->json(['result' => true]);
     }
 
     public function destroyDepartment($id)
@@ -430,7 +435,7 @@ class SchoolController extends Controller
         }
 
         $department->delete();
-        DB::delete('delete from teachers where department_id = ?', [$id]);
+        DB::delete('delete from teachers where dept_id = ?', [$id]);
 
         return response()->json(['result' => true]);
     }

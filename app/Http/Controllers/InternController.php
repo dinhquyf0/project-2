@@ -19,23 +19,24 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class InternController extends Controller
 {
-	// public function __construct()
-	// {
-	// 	$user = JWTAuth::parseToken()->authenticate();
- //        $this->user_id = $user['id'];
- //        $this->group_id = $user['groupid'];
-	// }
+	public function __construct()
+	{
+		$user = JWTAuth::parseToken()->authenticate();
+        $this->user_id = $user['id'];
+        $this->group_id = $user['group_id'];
+	}
+
     public function indexCv()
     {
     	$cvs = DB::table('student_cvs')->get();
-    	return response()->json($cvs);
+    	if (is_null($cvs)) {
+    		return response()->json(['result' => false, 'reason' => 'db empty']);
+    	}
+    	return response()->json(['result' => true, 'data' => $cvs]);
     }
 
     public function storeCv(Request $request)
     {
-		$user = JWTAuth::parseToken()->authenticate();
-        $user_id = $user['id'];
-
 	   	$validator = Validator::make($request->all(), 
 			[
 				'name' => 'required|string|max:255',
@@ -190,10 +191,13 @@ class InternController extends Controller
 			};
 		}
 
-
+		$check_exist = StudentCv::find($user_id);
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => '1 student have only 1 cv']);
+		}
 
 		$student_cv = new StudentCv;
-		$student_cv->user_id = $user_id;
+		$student_cv->user_id = $this->user_id;
 		$student_cv->name = $request->name;
 		$student_cv->avatar = $request->avatar;
 		$student_cv->position = $request->position;
@@ -230,15 +234,16 @@ class InternController extends Controller
         }
 
         $student_cv = StudentCv::find($id);
+        if (is_null($student_cv)) {
+        	return response()->json(['result' => false, 'reason' => 'id not found']);
+        }
 
-        return response()->json($student_cv);
+        return response()->json(['result' => treu, 'data' => $student_cv]);
 
     }
 
     public function updateCv(Request $request, $id)
     {
-    	$user = JWTAuth::parseToken()->authenticate();
-        $user_id = $user['id'];
 
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
@@ -404,12 +409,12 @@ class InternController extends Controller
 
 		$student_cv = StudentCv::find($id);
 
-		if ($user_id != $student_cv->user_id) {
+		if ($this->user_id != $student_cv->user_id) {
 			return response()->json(['result' => false, 'reason' => 'this cv doesn\'t belong to this user']);
 		}
 
 		
-		$student_cv->user_id = $user_id;
+		$student_cv->user_id = $this->user_id;
 		$student_cv->name = $request->name;
 		$student_cv->avatar = $request->avatar;
 		$student_cv->position = $request->position;
@@ -437,9 +442,6 @@ class InternController extends Controller
 
     public function destroyCv($id)
     {
-    	$user = JWTAuth::parseToken()->authenticate();
-        $user_id = $user['id'];
-
     	if (!is_int((int)$id)) {
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
@@ -450,7 +452,7 @@ class InternController extends Controller
 
         $cv = StudentCv::find($id);
 
-        if ($user_id != $cv->user_id) {
+        if ($this->user_id != $cv->user_id) {
 			return response()->json(['result' => false, 'reason' => 'this cv doesn\'t belong to this user']);
 		}
         if (is_null($cv)) {

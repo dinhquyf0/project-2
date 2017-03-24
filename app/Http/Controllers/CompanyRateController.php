@@ -25,19 +25,24 @@ class CompanyRateController extends Controller
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
 		$this->user_id = $user['id'];
-		$this->group_id = $user['groupid'];
+		$this->group_id = $user['group_id'];
 	}
     public function index()
     {
 
-        $company_rate = DB::table('company_rates')
+        $company_rates = DB::table('company_rates')
         	->join('users', 'company_rates.student_id', '=', 'users.id')
 	    	->join('users', 'company_rates.employee_id', '=', ' users.id')
-	    	->join('topics', 'topics.id = assign_interns.topic_id')
+	    	->join('topics', 'topics.id', '=', 'assign_interns.topic_id')
+	    	->select('company_rates.id','company_rates.student_id', 'company_rates.employee_id', 'company_rates.topic_id', 'company_rates.rate', 'company_rates.point', 'company_rates.period')
         	->get();
     	$return_array = array();
 
-        foreach ($company_rate as $key => $value) {
+    	if (is_null($company_rates) {
+    		return response()->json(['result' => false, 'reason' => 'db empty']);
+    	}
+
+        foreach ($company_rates as $key => $value) {
         	$temp = array();
 
         	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
@@ -118,7 +123,7 @@ class CompanyRateController extends Controller
 		])->get();
 
 		if (!is_null($check_exist)) {
-			return response()->json(['result' => false, 'reason' => 'company exist!!']);
+			return response()->json(['result' => false, 'reason' => 'company rate exist!!']);
 		}	
 		
 		$company_rate = new CompanyRate;
@@ -148,7 +153,12 @@ class CompanyRateController extends Controller
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
 
-        $company_rate = DB::table('companu_rates')->where('id', $id)->first();
+        $company_rate = DB::table('companu_rates')->where('id', $id)
+        	->join('users', 'company_rates.student_id', '=', 'users.id')
+	    	->join('users', 'company_rates.employee_id', '=', ' users.id')
+	    	->join('topics', 'topics.id', '=', 'assign_interns.topic_id')
+	    	->select('company_rates.id', 'company_rates.student_id', 'company_rates.employee_id', 'company_rates.topic_id', 'company_rates.rate', 'company_rates.point', 'company_rates.period')
+        	->first();
         if (is_null($company_rate)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }

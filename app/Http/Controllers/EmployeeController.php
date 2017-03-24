@@ -23,13 +23,21 @@ class EmployeeController extends Controller
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
 		$this->user_id = $user['id'];
-		$this->group_id = $user['groupid'];
+		$this->group_id = $user['group_id'];
 	}
 
     public function indexEmployees()
     {
-    	$employees = DB::table('employees')->get();
-    	return $employees;
+    	$employees = DB::table('employees')
+    		->join('users', 'employees.id', '=', 'users.id')
+    		->join('companies', 'employees.company_id', '=', 'companies.id')
+    		->select('users.id','users.firstname', 'users.lastname', 'employees.employee_id', 'employees.position', 'employees.dept',
+    			'companies.name as company_name')
+    		->get();
+    	if (is_null($employees)) {
+    		return response()->json(['result' => false, 'reason' => 'db empty']);
+    	}
+    	return response()->json(['result' => true, 'data' => $employees]);
     }
 
     public function storeEmployees(Request $request)
@@ -46,9 +54,9 @@ class EmployeeController extends Controller
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('emplyee_id')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyee_id'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -75,6 +83,10 @@ class EmployeeController extends Controller
 			};
 		}
 
+		$check_exist = DB::table('employees')->where('employee_id', $request->employee_id)->first();
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'employee_id exist']);
+		}
 		$employee = new Employee;
 
 		$employee->id = $this->user_id;
@@ -99,9 +111,9 @@ class EmployeeController extends Controller
         }
 
         $employee = DB::table('employees')->where('id', $id)
-        	->join('users', 'users.id = employees.id')
-        	->join('companies', 'companies.id = employees.company_id')
-        	->select('users.name', 'companies.name', 'employees.employee_id', 'employees.dept', 'employees.position', 'employees.company_id');
+        	->join('users', 'users.id', '=', 'employees.id')
+        	->join('companies', 'companies.id', '=', 'employees.company_id')
+        	->select('users.id','users.firstname', 'users.lastname', 'companies.name', 'employees.dept', 'employees.position', 'employees.employee_id');
         	->first();
         
         return response()->json($employee);
@@ -118,7 +130,7 @@ class EmployeeController extends Controller
 
         $validator = Validator::make($request->all(), 
 			[
-				'emplyee_id' => 'required|string|max:255',
+				'employee_id' => 'required|string|max:255',
 				'dept' => 'required|string|max:255',
 				'position' => 'required|string|max:255',
 				'company_id' => 'required|max:255',
@@ -128,9 +140,9 @@ class EmployeeController extends Controller
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('emplyee_id')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyee_id'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -163,6 +175,15 @@ class EmployeeController extends Controller
 			return response()->json(['result' => false, 'reason' => 'employee not found!!']);
 		}
 
+		$check_exist = DB::table('employees')->where('employee_id', $request->employee_id)->first();
+		if (!is_null($check_exist)) {
+			return response()->json(['result' => false, 'reason' => 'employee_id exist']);
+		}
+
+		if ($this->user_id != $employee->user_id) {
+			return response()->json(['result' => false, 'reason' => 'only employee can update info them self']);
+		}
+
 		$employee->id = $this->user_id;
 		$employee->employee_id = $request->employee_id;
 		$employee->dept = $request->dept;
@@ -191,7 +212,10 @@ class EmployeeController extends Controller
 
         $employee->delete();
 
-        // DB::table('assign_interns')->where('topic_id', $id)->delete();
+        DB::table('assign_interns')->where('employee_id', $id)->delete();
+        DB::table('topics')->where('employee_id', $id)->delete();
+        // DB::table('assign_interns')->where('employee_id', $id)->update(['employee_id', null]);
+        // DB::table('topics')->where('employee_id', $id)->update(['employee_id', null]);
 
         return response()->json(['result' => true]);
     }
@@ -200,7 +224,7 @@ class EmployeeController extends Controller
     {
     	$companies = DB::table('companies')->where('is_accept', 1)->get();
 
-    	return response()->json($companies);
+    	return response()->json(['result' => true, 'data' => $companies]);
     }
 
     public function storeCompany(Request $request)
@@ -302,7 +326,7 @@ class EmployeeController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	return response()->json($company);
+    	return response()->json(['result' => true, 'data' => $company]);
     }
 
     public function updateCompany(Request $request, $id)
@@ -381,7 +405,7 @@ class EmployeeController extends Controller
 
 		$company = Company::find($id);
 
-        if (count($company) == 0) {
+        if (is_null($company)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
@@ -419,6 +443,7 @@ class EmployeeController extends Controller
         }
 
         $company->delete();
+        DB::table('employees')->where('company_id', $id)->delete();
 
         return response()->json(['result' => true]);
     }

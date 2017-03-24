@@ -26,7 +26,7 @@ class TopicController extends Controller
 
     public function index()
     {
-    	if ($this->group_id == 1 || $this->group_id == 3 || $this->group_id == 6) {
+    	if ($this->group_id == 1 || $this->group_id == 6) {
     		$topics = DB::table('topics')->get();
     		if (is_null($topics)) {
     			return response()->json(['result' => false, 'reason' => 'no topics to see!!']);

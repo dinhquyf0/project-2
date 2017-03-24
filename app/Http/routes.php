@@ -148,11 +148,15 @@ Route::post('/create_intern_statuses', 'TeacherController@storeInternStatus');
 
 Route::post('/update_intern_statuses/{id}', 'TeacherController@updateInternStatus');
 
-Route::get('/get_intent_statuses', 'TeacherController@getStudentIntent');
+Route::get('/get_intent_statuses/{period}', 'TeacherController@getStudentIntent');
 
 Route::get('/accept_company/{id}', 'TeacherController@updateCompanyAccept');
 
 Route::get('/accept_topic/{id}', 'TeacherController@updateTopicAccept');
+
+Route::get('/get_all_companies', 'TeacherController@getAllCompany');
+
+Route::get('/get_topic_statuses', 'TeacherController@getTopicStatus');
 
 //Route for Rate
 Route::get('/rates', 'RateController@index');
@@ -213,6 +217,7 @@ Route::post('/update_company/{id}', 'EmployeeController@updateCompany');
 Route::delete('/delete_company/{id}', 'EmployeeController@destroyCompany');
 
 //Route for CompanyRate
+//all user can see this route
 Route::get('/company_rates', 'CompanyRateController@index');
 
 Route::post('/create_company_rate', 'CompanyRateController@store');

@@ -29,26 +29,20 @@ class TeacherController extends Controller
 	{
 		$user = JWTAuth::parseToken()->authenticate();
 		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->groupid = $user['group_id'];
 	}
 
     public function index()
     {
-    	$return_array = array();
-    	$teachers = DB::select('select * from teachers');
-    	foreach ($students as $key => $value) {
-    		$temp = array();
-    		$temp['id'] = $value->id;
-    		$temp['teacherid'] = $value->teacherid;
-    		$temp['start'] = $value->start;
-    		$temp['position'] = $value->position;
-    		$temp['degree'] = $value->degree;
-    		$temp['departmentsid'] = $value->departmentsid;
-
-    		$department_name = DB::select('select name from departments where id = ?', [$value->departmentsid]);
-    		$temp['department_name'] = $department_name[0]->name;
-    		$return_array[] = $temp;
-    	}
+    	$teachers = DB::table('teachers')
+            ->join('users', 'teachers.id','=', 'users.id')
+            ->join('departments', 'teachers.dept_id', '=', 'users.id')
+            ->select('users.id', 'users.firstname', 'users.lastname', 'teachers.teacher_id', 'teachers.start', 'teachers.position', 'teachers.degree', 'departments.name')
+            ->get();
+        if (is_null($teachers)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
+    	
     	return response()->json($return_array);
     }
 
@@ -56,20 +50,20 @@ class TeacherController extends Controller
     {
     	$validator = Validator::make($request->all(), 
 			[
-				'teacherid' => 'required|max:255',
+				'teacher_id' => 'required|max:255',
 				'start' => 'required|max:255',
 				'position' => 'required|max:255',
-				'degree' => 'required|email|max:255',
-                'departmentsid' => 'required|max:15',
+				'degree' => 'required|max:255',
+                'dept_id' => 'required|max:15',
 			]
 		);
 		
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			$errors = $validator->errors();
-			if($errors->has('teacherid')) {
+			if($errors->has('teacher_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'teacherid!'
+					'message' => 'teacher_id!'
 				);
 				return response()->json($returnArray);
 			};
@@ -95,22 +89,22 @@ class TeacherController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('departmentsid')) {
+			if($errors->has('dept_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'departmentsid'
+					'message' => 'dept_id'
 				);
 				return response()->json($returnArray);
 			};
 
 		}
 
-		$check_department = Department::find($request->departmentsid);
+		$check_department = Department::find($request->dept_id);
 
 		if (count($check_department) == 0) {
 			return response()->json(['result' => false, 'reason' => 'department not exist!!']);
 		}
 
-		$check_teacher_info = Teacher::find($request->teacherid);
+		$check_teacher_info = Teacher::find($request->teacher_id);
 
 		if (count($check_teacher_info) > 0) {
 			return response()->json(['result' => false, 'reason' => 'teacher exist!!']);
@@ -118,11 +112,11 @@ class TeacherController extends Controller
 		
 		$teacher = new Teacher;
 		$teacher->id = $this->id;
-		$teacher->teacherid = $request->teacherid;
+		$teacher->teacherid = $request->teacher_id;
 		$teacher->start = $request->start;
 		$teacher->position = $request->position;
 		$teacher->degree = $request->degree;
-		$teacher->departmentsid = $request->departmentsid;
+		$teacher->departmentsid = $request->dept_id;
 
 		$check_save = $teacher->save();
 
@@ -149,7 +143,7 @@ class TeacherController extends Controller
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
     	
-    	$department = DB::select('select name from departments where id = ?', [$check->departmentsid]);
+    	$department = DB::select('select name from departments where id = ?', [$check->dept_id]);
 
     	$return_array = array();
 
@@ -175,11 +169,11 @@ class TeacherController extends Controller
 
         $validator = Validator::make($request->all(), 
 			[
-				'teacherid' => 'required|max:255',
+				'teacher_id' => 'required|max:255',
 				'start' => 'required|max:255',
 				'position' => 'required|max:255',
-				'degree' => 'required|email|max:255',
-                'departmentsid' => 'required|max:15',
+				'degree' => 'required|max:255',
+                'dept_id' => 'required|max:15',
 			]
 		);
 		
@@ -214,9 +208,9 @@ class TeacherController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('departmentsid')) {
+			if($errors->has('dept_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'departmentsid'
+					'message' => 'dept_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -225,24 +219,24 @@ class TeacherController extends Controller
 
 		$teacher = Teacher::find($id);
 
-        if (count($teacher) == 0) {
+        if (is_null($teacher)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
-        $check = DB::select('select * from teachers where teacherid = ?', [$request->teacherid]);
-        if (count($check) == 0) {
-        	return response()->json(['result' => false, 'reason' => 'teacherid exist!!']);
+        $check = DB::select('select * from teachers where teacher_id = ?', [$request->teacher_id]);
+        if (!is_null($check)) {
+        	return response()->json(['result' => false, 'reason' => 'teacher_id exist!!']);
         }
 
-        $teacher->teacherid = $request->teacherid;
+        $teacher->teacher_id = $request->teacher_id;
 		$teacher->start = $request->start;
 		$teacher->position = $request->position;
 		$teacher->degree = $request->degree;
-		$teacher->departmentsid = $request->departmentsid;
+		$teacher->dept_id = $request->dept_id;
 
 		$check_save = $teacher->save();
 
-		if (count($check_save) == 0) {
+		if (is_null($check_save)) {
 			return response()->json(['result' => false, 'reason' => 'save fails!!!']);
 		}
 
@@ -261,11 +255,13 @@ class TeacherController extends Controller
 
         $teacher = Teacher::find($id);
 
-        if (count($teacher) == 0) {
+        if (is_null($teacher)) {
         	return response()->json(['result' => false, 'reason' => 'id not exist']);
         }
 
         $teacher->delete();
+        DB::table('grades')->where('id', $teacher->dept_id)->delete();
+        DB::table('students')->where('class_id', $teacher->dept_id)->update(['class_id', null]);
 
         return response()->json(['result' => true]);
     }
@@ -273,7 +269,10 @@ class TeacherController extends Controller
     public function showDeadLine()
     {
     	$deadlines = DB::table('dead_lines')->get();
-    	return response()->json($deadlines);
+        if (is_null($deadlines)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
+    	return response()->json(['result' => true, 'data' => $deadlines]);
     }
 
     public function createDeadLine(Request $request)
@@ -288,6 +287,11 @@ class TeacherController extends Controller
 		if ($validator->fails()) {	
 			return response()->json(['result' => false, 'message' => 'validate fails!!']);
 		}
+
+        $check_exist = DB::table('dead_lines')->where('period', $request->period)->get();
+        if (!is_null($check_exist)) {
+            return response()->json(['result' => false, 'reason' => 'period exist']);
+        }
 
 		$deadlines = new DeadLine;
 
@@ -328,8 +332,15 @@ class TeacherController extends Controller
 		if ($validator->fails()) {	
 			return response()->json(['result' => false, 'message' => 'validate fails!!']);
 		}
+        $check_exist = DB::table('dead_lines')->where('period', $request->period)->get();
+        if (!is_null($check_exist)) {
+            return response()->json(['result' => false, 'reason' => 'period exist']);
+        }
 
 		$deadlines = DeadLine::find($id);
+        if (is_null($deadlines)) {
+            return response()->json(['result' => false, 'reason' => 'id not found']);
+        }
 
 		$deadlines->company_register_topic = $request->company_register_topic;
 		$deadlines->student_register_topic = $request->student_register_topic;
@@ -378,6 +389,9 @@ class TeacherController extends Controller
     		->join('users', 'intern_statuses.student_id', '=', 'users.id')
     		->select('users.firstname', 'users.lastname', 'intern_statuses.period', 'intern_statuses.status', 'intern_statuses.link_report')
     		->get();
+        if (is_null($intern_statuses)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
     	return response()->json($intern_statuses);
     }
 
@@ -385,9 +399,9 @@ class TeacherController extends Controller
     {
     	$validator = Validator::make($request->all(), 
 			[
-                'student_id' => 'required',
-                'period' => 'required',
-                'status' => 'required'
+                'student_id' => 'required|max:20',
+                'period' => 'required|max:5',
+                'status' => 'required|max:10'
 			]
 		);
 		
@@ -395,6 +409,16 @@ class TeacherController extends Controller
 		if ($validator->fails()) {	
 			return response()->json(['result' => false, 'message' => 'validate fails!!']);
 		}
+
+        $check_exist = DB::table('intern_statuses')
+            ->where([
+                ['student_id', $request->student_id],
+                ['period', $request->period]
+            ])->get();
+        if (!is_null($check_exist)) {
+            return response()->json(['result' => false, 'reason' => 'student_id exist']);
+        }
+
 
 		$intern_statuses = new InternStatus;
 
@@ -426,7 +450,16 @@ class TeacherController extends Controller
 		//if the validation fails, terminate the program
 		if ($validator->fails()) {	
 			return response()->json(['result' => false, 'reason' => 'validate fails!!']);
-		}
+		} 
+
+        $check_exist = DB::table('intern_statuses')
+            ->where([
+                ['student_id', $request->student_id],
+                ['period', $request->period]
+            ])->get();
+        if (!is_null($check_exist)) {
+            return response()->json(['result' => false, 'reason' => 'student_id exist']);
+        }
 
 		$intern_statuses = InternStatus::find($id);
 
@@ -443,20 +476,71 @@ class TeacherController extends Controller
 		return response()->json(['result' => true]);
     }
 
-    public function getStudentIntent()
+    public function getStudentIntent($period)
     {
+        if (!is_int((int)$id)) {
+            return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
+        }
+
+        if ((int)$id > 1000000000 || (int)$id < 0) {
+            return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
+        }
+
     	if ($this->groupid != 3) {
     		return response()->json(['result' => false, 'reason' => 'permission denie']);
     	}
 
     	$intents = DB::table('student_interns')
     		->join('users', 'student_interns.student_id', '=', 'users.id')
-    		->select('users.firstname', 'users.lastname', 
+    		->select('student_interns.id', 'users.firstname', 'users.lastname', 
     			'student_interns.topic_1', 'student_interns.topic_2', 'student_interns.topic_3'
-    			'student_interns.period')
+    			'student_interns.period', 'student_interns.updated_at')
     		->get();
+        $deadline = DB::table('dead_lines')->where('period', $period)->select('student_register_topic')->first();
+        if (is_null($intents)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
+        foreach ($intents as $key => $value) {
+            if (strtotime($value->updated_at) > strtotime($deadline)) {
+                $value['out_of_date'] = 1;
+            } else {
+                $value['out_of_date'] = 0;
+            }
+        }
+        
+    	return response()->json(['result' => true, 'data' => $intents]);
+    }
 
-    	return response()->json($intents);
+    public function getTopicStatus()
+    {
+        $deadline = DB::table('dead_lines')->where('period', $period)->select('company_register_topic')->first();
+        $topics = DB::table('topics')->where('status', 0)->get();
+        if (is_null($topics)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
+        foreach ($topics as $key => $value) {
+            if (strtotime($value->updated_at) > strtotime($deadline)) {
+                $value['out_of_date'] = 1;
+            } else {
+                $value['out_of_date'] = 0;
+            }
+        }
+
+        return response()->json(['result' => true, 'data' => $topics]);
+    }
+
+    public function getAllCompany()
+    {
+        if ($this->group_id != 3) {
+            return response()->json(['result' => false, 'permission denie']);
+        }
+
+        $companies = DB::table('companies')->get();
+        if (is_null($companies)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
+
+        return response()->json(['result' => true, 'data'=>$companies]);
     }
 
     public function updateCompanyAccept($id)

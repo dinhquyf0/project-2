@@ -28,7 +28,7 @@ class AssigneeInternController extends Controller
 	public function __construct(){
 		$user = JWTAuth::parseToken()->authenticate();
 		$this->user_id = $user['id'];
-		$this->group_id = $user['groupid'];
+		$this->group_id = $user['group_id'];
 	}
 
     public function index()
@@ -38,28 +38,31 @@ class AssigneeInternController extends Controller
     	->join('users', 'users.id',' = ','assign_interns.teacher_id')
 		->join('users', 'users.id',' = ','assign_interns.employee_id')
 		->join('topics', 'topics.id',' =',' assign_interns.topic_id')
+        ->select('assign_interns.id','assign_interns.student_id', 'assign_interns.teacher_id', 'assign_interns.employee_id', 'assign_interns.topic_id', 'assign_interns.period')
 		->get();
+        if (is_null($assigns)) {
+            return response()->json(['result' => false, 'reason' => 'db empty']);
+        }
 		$return_array = array();
 
-        foreach ($company_rate as $key => $value) {
+        foreach ($assigns as $key => $value) {
         	$temp = array();
-
+            //get student info
         	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['student_id'] = $student->id;
         	$temp['student_first_name'] = $student->firstname;
         	$temp['student_last_name'] = $student->lastname;
-
+            //get teacher info
         	$teacher = DB::table('users')->where('id', $value->teacher_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['teacher_id'] = $teacher->id;
         	$temp['teacher_first_name'] = $teacher->firstname;
         	$temp['teacher_last_name'] = $teacher->lastname;
-
+            //get employee info
         	$employee = DB::table('users')->where('id', $value->employee_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['employee_id'] = $employee->id;
         	$temp['employee_first_name'] = $employee->firstname;
         	$temp['employee_last_name'] = $employee->lastname;
-
-
+            //get topic info
         	$topic = DB::table('topics')->where('id', $value->topic_id)->select('id', 'title')->first();
         	$temp['topic_id'] = $topic->id;
         	$temp['topic_title'] = $topic->title;
@@ -69,9 +72,7 @@ class AssigneeInternController extends Controller
         	$return_array[] = $temp;
         }
     	
-    	return response()->json($company_rate);
-    	->get();
-    	return $assigns;
+    	return response()->json($return_array);
     }
 
     public function store(Request $request)
@@ -122,7 +123,7 @@ class AssigneeInternController extends Controller
 			$assign->teacher_id = $this->user_id;
 			$assign->employee_id = $request->employee_id;
 		} else {
-			$assign->teacher_id = $request->teacher_id;
+			$assign->teacher_id = null;
 			$assign->employee_id = $this->user_id;
 		}
 		
@@ -148,29 +149,39 @@ class AssigneeInternController extends Controller
 	    	->join('users', 'users.id', '=', ' assign_interns.teacher_id')
 			->join('users', 'users.id', '=', 'assign_interns.employee_id')
 			->join('topics', 'topics.id', '=', 'assign_interns.topic_id')
+            ->select('assign_interns.id','assign_interns.student_id', 'assign_interns.teacher_id', 'assign_interns.employee_id', 'assign_interns.topic_id', 'assign_interns.period')
         	->first();
        	$return_array = array();
+        if (is_null($assigns)) {
+            return response()->json(['result' => false, 'reason' => 'id not found']);
+        }
         foreach ($assigns as $key => $value) {
         	$temp = array();
+            //get student info
         	$student = DB::table('users')->where('id', $value->student_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['student_id'] = $student->id;
         	$temp['student_first_name'] = $student->firstname;
         	$temp['student_last_name'] = $student->lastname;
+            //get teacher info
         	$teacher = DB::table('users')->where('id', $value->teacher_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['teacher_id'] = $teacher->id;
         	$temp['teacher_first_name'] = $teacher->firstname;
         	$temp['teacher_last_name'] = $teacher->lastname;
+            //get employee info
         	$employee = DB::table('users')->where('id', $value->employee_id)->select('id', 'firstname', 'lastname')->first();
         	$temp['employee_id'] = $employee->id;
         	$temp['employee_first_name'] = $employee->firstname;
         	$temp['employee_last_name'] = $employee->lastname;
+            //get topic info
         	$topic = DB::table('topics')->where('id', $value->topic_id)->select('id', 'title')->first();
         	$temp['topic_id'] = $topic->id;
         	$temp['topic_title'] = $topic->title;
+            //assign to array before return
+
         	$return_array[] = $temp;
         }
         
-        return response()->json($return_array);
+        return response()->json(['result' => true, 'date' =>$return_array]);
     }
 
     public function update(Request $request, $id)
@@ -216,9 +227,9 @@ class AssigneeInternController extends Controller
 				return response()->json($returnArray);
 			};
 
-			if($errors->has('emplyee_id')) {
+			if($errors->has('employee_id')) {
 				$returnArray = array('result' => false, 
-					'message' => 'emplyee_id'
+					'message' => 'employee_id'
 				);
 				return response()->json($returnArray);
 			};
@@ -233,7 +244,9 @@ class AssigneeInternController extends Controller
 		}
 
 		$assign = AssignIntern::find($id);
-
+        if (is_null($assigns)) {
+            return response()->json(['result' => false, 'reason' => 'id not found']);
+        }
 		$assign->period = $request->period;
 		$assign->student_id = $request->student_id;
 		$assign->teacher_id = $request->teacher_id;
@@ -257,7 +270,7 @@ class AssigneeInternController extends Controller
         $assign = AssignIntern::find($id);
 
         if (is_null($assign)) {
-        	return response()->json(['result' => false, 'reason' => 'topic not exist!!!']);
+        	return response()->json(['result' => false, 'reason' => 'assign id not exist!!!']);
         }
 
         $assign->delete();

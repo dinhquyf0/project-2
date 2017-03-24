@@ -27,7 +27,7 @@ class StudentController extends Controller
 	{
 		$user = JWTAuth::parseToken()->authenticate();
 		$this->userid = $user['id'];
-		$this->groupid = $user['groupid'];
+		$this->groupid = $user['group_id'];
 	}
     public function index()
     {
@@ -311,15 +311,47 @@ class StudentController extends Controller
 
     public function createIntent(Request $request)
     {
+    	$validator = Validator::make($request->all(), 
+			[	
+				'student_id' => 'required|max:255',
+				'period' => 'required|max:255',
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			$errors = $validator->errors();
+			if($errors->has('student_id')) {
+				$returnArray = array('result' => false, 
+					'message' => 'student_id!'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('period')) {
+				$returnArray = array('result' => false, 
+					'message' => 'period'
+				);
+				return response()->json($returnArray);
+			};
+
+		}
     	if ($request->topic_1 == $request->topic_2 || $request->topic_2 == $request->topic_3 || $request->topic_3 == $request->topic_1) {
     		return response()->json(['result' => false, 'reason' => 'wrong topic']);
     	}
+
+    	$check_exist = DB::table('student_interns')->where([['period', $request->period], ['student_id', $this->user_id]])->get();
+    	if (is_null($check_exist)) {
+    		return response()->json(['result' => false, 'reason' => 'student already create intern in this period']);
+    	}
+
     	$student_internt = new StudentInternt;
 
     	$student_internt->student_id = $this->user_id;
     	$student_internt->topic_1 = $request->topic_1;
     	$student_internt->topic_2 = $request->topic_2;
     	$student_internt->topic_3 = $request->topic_3;
+    	$student_internt->period = $request->period;
 
     	$check_save = $student_internt->save();
     	if (is_null($check_save)) {
@@ -335,9 +367,35 @@ class StudentController extends Controller
             return response()->json(['result' => false, 'reason' => 'id must be integer!!']);
         }
 
-        if ((int)$id > 10000 || (int)$id < 0) {
+        if ((int)$id > 100000000 || (int)$id < 0) {
             return response()->json(['result' => false, 'reason' => 'id is not accept!!']);
         }
+        
+    	$validator = Validator::make($request->all(), 
+			[	
+				'student_id' => 'required|max:255',
+				'period' => 'required|max:255',
+			]
+		);
+		
+		//if the validation fails, terminate the program
+		if ($validator->fails()) {	
+			$errors = $validator->errors();
+			if($errors->has('student_id')) {
+				$returnArray = array('result' => false, 
+					'message' => 'student_id!'
+				);
+				return response()->json($returnArray);
+			};
+
+			if($errors->has('period')) {
+				$returnArray = array('result' => false, 
+					'message' => 'period'
+				);
+				return response()->json($returnArray);
+			};
+
+		}
 
     	if ($request->topic_1 == $request->topic_2 || $request->topic_2 == $request->topic_3 || $request->topic_3 == $request->topic_1) {
     		return response()->json(['result' => false, 'reason' => 'wrong topic']);
@@ -353,6 +411,7 @@ class StudentController extends Controller
     	$student_internt->topic_1 = $request->topic_1;
     	$student_internt->topic_2 = $request->topic_2;
     	$student_internt->topic_3 = $request->topic_3;
+    	$student_internt->period = $request->period;
 
     	$check_save = $student_internt->save();
     	if (is_null($check_save)) {
